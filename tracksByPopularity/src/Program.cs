@@ -12,6 +12,7 @@ using tracksByPopularity.Infrastructure.Logging;
 using tracksByPopularity.Infrastructure.Data;
 using tracksByPopularity.Presentation.Middlewares;
 using Microsoft.Extensions.Options;
+using tracksByPopularity.Infrastructure.Configuration;
 
 DotEnv.Load();
 
@@ -43,7 +44,16 @@ builder.Host.UseSerilog((context, services, loggerConfig) =>
 builder.Services.AddApplicationConfiguration(builder.Configuration);
 
 // Configure JWT Authentication
-var jwtSecret = Environment.GetEnvironmentVariable("JWT_SECRET") ?? "default-secret-key-change-in-production-min-32-chars-long";
+var jwtSettings = builder.Configuration
+    .GetSection("JwtSettings")
+    .Get<JwtSettings>() ?? new JwtSettings();
+
+// In production, require a strong secret to avoid insecure defaults.
+if (!builder.Environment.IsDevelopment() && (string.IsNullOrWhiteSpace(jwtSettings.Secret) || jwtSettings.Secret.Length < 32))
+{
+    throw new InvalidOperationException("JWT secret is missing or too short. Set JWT_SECRET (>= 32 chars).");
+}
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -54,11 +64,11 @@ builder.Services.AddAuthentication(options =>
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret)),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
         ValidateIssuer = true,
-        ValidIssuer = "tracksByPopularity",
+        ValidIssuer = jwtSettings.Issuer,
         ValidateAudience = true,
-        ValidAudience = "tracksByPopularity",
+        ValidAudience = jwtSettings.Audience,
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
