@@ -28,13 +28,11 @@
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTrackActions } from '@/composables/useTrackActions'
-import { useApiStore } from '@/stores/api'
 import { SUCCESS_MESSAGES } from '@/utils/constants'
 import ActionButton from './ActionButton.vue'
 
 const { t } = useI18n()
 const { addTracksByPopularity, loading } = useTrackActions()
-const apiStore = useApiStore()
 
 type PopularityCategoryId = 'less' | 'less-medium' | 'medium' | 'more-medium' | 'more'
 
