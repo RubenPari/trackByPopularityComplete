@@ -8,6 +8,20 @@ namespace tracksByPopularity.Presentation.Controllers;
 [Route("api/account")]
 public class AccountController(IAccountAuthService authService) : ControllerBase
 {
+    private CookieOptions CreateAccessTokenCookieOptions()
+    {
+        // In local/dev over HTTP we cannot use Secure cookies. In prod behind HTTPS we should.
+        var isHttps = Request.IsHttps;
+        return new CookieOptions
+        {
+            HttpOnly = true,
+            Secure = isHttps,
+            SameSite = SameSiteMode.Lax,
+            MaxAge = TimeSpan.FromDays(7),
+            Path = "/"
+        };
+    }
+
     /// <summary>
     /// Registers a new user
     /// </summary>
@@ -49,13 +63,7 @@ public class AccountController(IAccountAuthService authService) : ControllerBase
             IsSpotifyLinked = result.User.SpotifyLink != null
         };
 
-        Response.Cookies.Append("access_token", result.Token!, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            MaxAge = TimeSpan.FromDays(7)
-        });
+        Response.Cookies.Append("access_token", result.Token!, CreateAccessTokenCookieOptions());
 
         return Ok(ApiResponse.Ok(new LoginResponse
         {
@@ -165,13 +173,7 @@ public class AccountController(IAccountAuthService authService) : ControllerBase
             return BadRequest(ApiResponse.Fail(result.Error!));
         }
 
-        Response.Cookies.Append("access_token", result.Token!, new CookieOptions
-        {
-            HttpOnly = true,
-            Secure = true,
-            SameSite = SameSiteMode.Strict,
-            MaxAge = TimeSpan.FromDays(7)
-        });
+        Response.Cookies.Append("access_token", result.Token!, CreateAccessTokenCookieOptions());
 
         return Ok(ApiResponse.Ok(new { message = "Spotify account linked successfully.", token = result.Token }));
     }
