@@ -32,10 +32,6 @@ onMounted(async () => {
   const error = urlParams.get('error')
 
   if (success === 'spotify_linked') {
-    const spotifyUserId = urlParams.get('spotify_user_id')
-    if (spotifyUserId) {
-      localStorage.setItem('spotify_user_id', spotifyUserId)
-    }
     apiStore.success = t('auth.spotifyLinkedSuccess')
     await authStore.refreshSpotifyStatus()
     spotifyLinked.value = authStore.spotifyLinked
