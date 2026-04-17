@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using SpotifyAPI.Web;
 using StackExchange.Redis;
 using tracksByPopularity.Infrastructure.Configuration;
@@ -9,6 +10,13 @@ namespace tracksByPopularity.Infrastructure.Services;
 public class SpotifyAuthService(IConnectionMultiplexer redis, IOptions<SpotifySettings> spotifySettings)
 {
     private readonly SpotifySettings _spotifySettings = spotifySettings.Value;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+    };
 
     public SpotifyClient GetSpotifyClientAsync()
     {
@@ -32,7 +40,7 @@ public class SpotifyAuthService(IConnectionMultiplexer redis, IOptions<SpotifySe
             throw new UnauthorizedAccessException("Spotify token not found for user");
         }
 
-        var token = JsonConvert.DeserializeObject<TokenData>(tokenJson!);
+        var token = JsonSerializer.Deserialize<TokenData>(tokenJson!.ToString(), JsonOptions);
 
         // Check if token is expired (with 5 minutes buffer)
         if (token!.CreatedAt.AddSeconds(token.ExpiresIn - 300) < DateTime.UtcNow)
@@ -61,7 +69,7 @@ public class SpotifyAuthService(IConnectionMultiplexer redis, IOptions<SpotifySe
         // Store token in Redis with user's ID as key
         await db.StringSetAsync(
             $"spotify_token:{userId}",
-            JsonConvert.SerializeObject(tokenData),
+            JsonSerializer.Serialize(tokenData, JsonOptions),
             TimeSpan.FromDays(30) // TTL for token
         );
     }
@@ -95,7 +103,7 @@ public class SpotifyAuthService(IConnectionMultiplexer redis, IOptions<SpotifySe
         var db = redis.GetDatabase();
         await db.StringSetAsync(
             $"spotify_token:{userId}",
-            JsonConvert.SerializeObject(tokenData),
+            JsonSerializer.Serialize(tokenData, JsonOptions),
             TimeSpan.FromDays(30)
         );
 

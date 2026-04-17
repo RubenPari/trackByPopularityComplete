@@ -1,7 +1,7 @@
 using System.IO.Compression;
 using System.Text;
-using Microsoft.Extensions.Caching.Distributed;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Polly;
 using Polly.Retry;
 using StackExchange.Redis;
@@ -23,6 +23,14 @@ public class RedisCacheRepository : ICacheRepository
     private readonly ResiliencePipeline _retryPipeline;
     private const int CompressionThreshold = 1024; // Compress data larger than 1KB
     private const byte CompressionMarker = 0x1F; // Marker byte to identify compressed data
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+    };
 
     public RedisCacheRepository(IConnectionMultiplexer connection, ILogger<RedisCacheRepository> logger)
     {
@@ -66,10 +74,10 @@ public class RedisCacheRepository : ICacheRepository
             {
                 // Decompress
                 var decompressed = Decompress(bytes.AsSpan(1));
-                return JsonConvert.DeserializeObject<T>(decompressed);
+                return JsonSerializer.Deserialize<T>(decompressed, JsonOptions);
             }
 
-            return JsonConvert.DeserializeObject<T>(value!);
+            return JsonSerializer.Deserialize<T>(value!.ToString(), JsonOptions);
         });
     }
 
@@ -78,8 +86,7 @@ public class RedisCacheRepository : ICacheRepository
         await _retryPipeline.ExecuteAsync(async ct =>
         {
             var db = _connection.GetDatabase();
-            var serialized = JsonConvert.SerializeObject(value);
-            var bytes = Encoding.UTF8.GetBytes(serialized);
+            var bytes = JsonSerializer.SerializeToUtf8Bytes(value, JsonOptions);
 
             // Compress if larger than threshold
             byte[] dataToStore;

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace tracksByPopularity.Application.Services;
 
@@ -11,6 +12,13 @@ public class ArtistService(IHttpClientFactory httpClientFactory, IOptions<AppSet
     : IArtistService
 {
     private readonly string _trackSummaryUrl = $"{appSettings.Value.TrackSummaryBaseUrl}/track/summary";
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+        Converters = { new JsonStringEnumConverter(JsonNamingPolicy.CamelCase) }
+    };
 
     /// <summary>
     /// Retrieves a summary of all artists in the user's library from an external service.
@@ -31,7 +39,7 @@ public class ArtistService(IHttpClientFactory httpClientFactory, IOptions<AppSet
 
         var jsonResult = await response.Content.ReadAsStringAsync();
 
-        var artists = JsonConvert.DeserializeObject<ArtistSummary[]>(jsonResult)!;
+        var artists = JsonSerializer.Deserialize<ArtistSummary[]>(jsonResult, JsonOptions)!;
 
         return artists;
     }
