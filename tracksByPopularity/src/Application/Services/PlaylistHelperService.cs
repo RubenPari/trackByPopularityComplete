@@ -113,10 +113,5 @@ public class PlaylistHelperService : IPlaylistHelper
         return $"Popularity: {range.Min}-{range.Max}";
     }
 
-    private static readonly string[] LegacyNamePrefixes =
-    [
-        "Popularity: Less (", "Popularity: Less Medium (", "Popularity: Medium (",
-        "Popularity: More Medium (", "Popularity: More ("
-    ];
 }
 
