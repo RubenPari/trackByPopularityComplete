@@ -22,7 +22,7 @@ public class TrackController(
 {
     /// <summary>
     /// Adds tracks to the designated playlist based on the specified popularity range.
-    /// Available ranges: "less" (0-20), "less-medium" (21-40), "medium" (41-60), "more-medium" (41-80), "more" (81-100).
+    /// Available ranges: "less" (0-20), "less-medium" (21-40), "medium" (41-60), "more-medium" (61-80), "more" (81-100).
     /// </summary>
     [HttpPost("popularity/{range}")]
     [SpotifyAuth]
