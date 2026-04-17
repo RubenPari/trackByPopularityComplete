@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using SpotifyAPI.Web;
+using tracksByPopularity.Application.Interfaces;
 using tracksByPopularity.Presentation.Filters;
 
 namespace tracksByPopularity.Presentation.Controllers;
@@ -12,6 +13,7 @@ namespace tracksByPopularity.Presentation.Controllers;
 public class SpotifyLinkController(
     SpotifyAuthService spotifyAuthService,
     IAccountAuthService accountAuthService,
+    ICacheRepository cacheRepository,
     ILogger<SpotifyLinkController> logger,
     IOptions<AppSettings> appSettings,
     IOptions<SpotifySettings> spotifySettings)
@@ -25,9 +27,18 @@ public class SpotifyLinkController(
     /// </summary>
     [HttpGet("link-url")]
     [Authorize]
-    public ActionResult<ApiResponse> GetLinkUrl()
+    public async Task<ActionResult<ApiResponse>> GetLinkUrl()
     {
         var linkCallbackUri = SpotifyRedirectUriHelper.GetLinkCallbackUri(_spotifySettings.RedirectUri);
+
+        var userIdClaim = User.FindFirst("userId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
+        if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+        {
+            return Unauthorized(ApiResponse.Fail("User not authenticated"));
+        }
+
+        var state = Guid.NewGuid().ToString("N");
+        await cacheRepository.SetAsync($"oauth_state:spotify_link:{state}", userId.ToString(), TimeSpan.FromMinutes(10));
 
         var loginRequest = new LoginRequest(
             linkCallbackUri,
@@ -36,7 +47,7 @@ public class SpotifyLinkController(
         )
         {
             Scope = Constants.MyScopes,
-            State = "link_spotify" // TODO: Use a random string
+            State = state
         };
 
         var loginUrl = loginRequest.ToUri().ToString();
@@ -62,9 +73,9 @@ public class SpotifyLinkController(
             return Redirect($"{_appSettings.FrontendOrigin}/settings?error=no_code");
         }
 
-        if (state != "link_spotify")
+        if (string.IsNullOrWhiteSpace(state))
         {
-            logger.LogWarning("Invalid state in link callback");
+            logger.LogWarning("Missing state in link callback");
             return Redirect($"{_appSettings.FrontendOrigin}/settings?error=invalid_state");
         }
 
@@ -85,11 +96,13 @@ public class SpotifyLinkController(
             var profile = await spotifyClient.UserProfile.Current();
             var spotifyUserId = profile.Id;
 
-            var userIdClaim = User.FindFirst("userId") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-            if (userIdClaim == null || !Guid.TryParse(userIdClaim.Value, out var userId))
+            var userIdString = await cacheRepository.GetAsync<string>($"oauth_state:spotify_link:{state}");
+            if (string.IsNullOrWhiteSpace(userIdString) || !Guid.TryParse(userIdString, out var userId))
             {
                 return Redirect($"{_appSettings.FrontendOrigin}/settings?error=not_authenticated");
             }
+
+            await cacheRepository.RemoveAsync($"oauth_state:spotify_link:{state}");
 
             var linkResult = await accountAuthService.LinkSpotifyAsync(
                 userId,
