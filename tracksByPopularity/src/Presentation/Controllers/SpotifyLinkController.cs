@@ -123,7 +123,7 @@ public class SpotifyLinkController(
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
-                Secure = false,
+                Secure = Request.IsHttps,
                 MaxAge = TimeSpan.FromDays(30),
                 Path = "/"
             });

@@ -90,7 +90,7 @@ public class AuthController(
             {
                 HttpOnly = true,
                 SameSite = SameSiteMode.Lax,
-                Secure = false, // Set to true in production with HTTPS
+                Secure = Request.IsHttps,
                 MaxAge = TimeSpan.FromDays(30),
                 Path = "/",
             });
