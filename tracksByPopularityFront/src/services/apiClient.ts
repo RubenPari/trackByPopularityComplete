@@ -15,6 +15,23 @@ export const apiClient = axios.create({
   },
 })
 
+function shouldRedirectToSpotifyLogin(requestUrl: string | undefined): boolean {
+  if (!requestUrl) return false
+
+  // Axios config.url may be relative (e.g. "/api/track/artists")
+  // Avoid redirecting when the user simply needs to re-authenticate to the app account.
+  if (requestUrl.startsWith('/api/account')) return false
+
+  // Spotify-protected endpoints in this app.
+  return (
+    requestUrl.startsWith('/api/track') ||
+    requestUrl.startsWith('/api/playlist') ||
+    requestUrl.startsWith('/api/backup') ||
+    requestUrl.startsWith('/track') ||
+    requestUrl.startsWith('/playlist')
+  )
+}
+
 // Setup interceptors
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem('auth_token')
@@ -46,18 +63,20 @@ apiClient.interceptors.response.use(
       // Handle known status codes
       if (status === 401 || status === 403) {
         apiStore.error = t('errors.authRequired')
-        // Fetch the Spotify login URL from the backend and redirect
-        try {
-          const loginResponse = await axios.get(`${API_BASE_URL}/auth/login`, {
-            withCredentials: true,
-          })
-          const loginUrl = loginResponse.data?.data?.loginUrl
-          if (loginUrl) {
-            window.location.href = loginUrl
+        if (shouldRedirectToSpotifyLogin(error.config?.url)) {
+          // Fetch the Spotify login URL from the backend and redirect
+          try {
+            const loginResponse = await axios.get(`${API_BASE_URL}/auth/login`, {
+              withCredentials: true,
+            })
+            const loginUrl = loginResponse.data?.data?.loginUrl
+            if (loginUrl) {
+              window.location.href = loginUrl
+            }
+          } catch {
+            // Fallback: redirect to auth/login endpoint directly
+            window.location.href = `${API_BASE_URL}/auth/login`
           }
-        } catch {
-          // Fallback: redirect to auth/login endpoint directly
-          window.location.href = `${API_BASE_URL}/auth/login`
         }
       } else if (status === 500) {
         apiStore.error = t('errors.internalServer')
