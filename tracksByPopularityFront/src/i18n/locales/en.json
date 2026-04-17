@@ -1,0 +1,194 @@
+{
+  "common": {
+    "close": "Close",
+    "retry": "Retry",
+    "loading": "Processing...",
+    "refreshing": "Updating...",
+    "somethingWentWrong": "Something went wrong",
+    "unexpectedError": "An unexpected error occurred",
+    "yes": "Yes",
+    "no": "No"
+  },
+  "auth": {
+    "loginTitle": "Welcome Back",
+    "registerTitle": "Create Account",
+    "forgotPasswordTitle": "Reset Password",
+    "resetPasswordTitle": "Set New Password",
+    "verifyEmailTitle": "Verify Email",
+    "email": "Email",
+    "emailPlaceholder": "Enter your email",
+    "password": "Password",
+    "passwordPlaceholder": "Enter your password",
+    "confirmPassword": "Confirm Password",
+    "confirmPasswordPlaceholder": "Confirm your password",
+    "newPassword": "New Password",
+    "newPasswordPlaceholder": "Enter new password",
+    "currentPassword": "Current Password",
+    "loginButton": "Sign In",
+    "registerButton": "Create Account",
+    "sendResetLink": "Send Reset Link",
+    "resetPasswordButton": "Reset Password",
+    "forgotPassword": "Forgot password?",
+    "register": "Sign Up",
+    "login": "Sign In",
+    "noAccount": "Don't have an account?",
+    "hasAccount": "Already have an account?",
+    "or": "or",
+    "loginWithSpotify": "Continue with Spotify",
+    "fillAllFields": "Please fill in all fields",
+    "passwordsDoNotMatch": "Passwords do not match",
+    "passwordMinLength": "Password must be at least 8 characters",
+    "loginSuccess": "Login successful!",
+    "loginFailed": "Login failed. Please check your credentials.",
+    "registrationSuccess": "Registration successful!",
+    "registrationFailed": "Registration failed. Please try again.",
+    "checkEmail": "Please check your email to verify your account.",
+    "goToLogin": "Go to Login",
+    "backToLogin": "Back to Login",
+    "forgotPasswordDescription": "Enter your email address and we'll send you a link to reset your password.",
+    "resetEmailSent": "If an account with that email exists, a password reset link has been sent.",
+    "resetPasswordDescription": "Enter your new password below.",
+    "passwordResetSuccess": "Your password has been reset successfully!",
+    "resetPasswordFailed": "Password reset failed. The link may have expired.",
+    "verificationFailed": "Email verification failed. The link may be invalid or expired.",
+    "verifying": "Verifying your email...",
+    "emailVerified": "Your email has been verified successfully!",
+    "changePassword": "Change Password",
+    "changePasswordButton": "Update Password",
+    "changePasswordFailed": "Failed to change password. Please check your current password.",
+    "passwordChangedSuccess": "Password changed successfully!",
+    "spotifyLinkedSuccess": "Spotify account linked successfully!",
+    "spotifyLinkFailed": "Failed to link Spotify account.",
+    "spotifyUnlinkedSuccess": "Spotify account unlinked successfully.",
+    "spotifyUnlinkFailed": "Failed to unlink Spotify account.",
+    "confirmUnlinkSpotify": "Are you sure you want to unlink your Spotify account?",
+    "spotifyLoginFailed": "Failed to initiate Spotify login."
+  },
+  "settings": {
+    "title": "Settings",
+    "email": "Email",
+    "emailVerified": "Email Verified",
+    "changePassword": "Change Password",
+    "currentPassword": "Current Password",
+    "newPassword": "New Password",
+    "confirmNewPassword": "Confirm New Password",
+    "changePasswordButton": "Update Password",
+    "spotifyAccount": "Spotify Account",
+    "spotifyStatus": "Status",
+    "linked": "Linked",
+    "notLinked": "Not Linked",
+    "linkSpotify": "Link Spotify",
+    "unlinkSpotify": "Unlink Spotify",
+    "dangerZone": "Danger Zone",
+    "logout": "Logout"
+  },
+  "home": {
+    "title": "Tracks by Popularity",
+    "subtitle": "Manage your Spotify playlists based on track popularity"
+  },
+  "tracks": {
+    "sectionTitle": "Track Management by Popularity",
+    "sectionDescription": "Add your tracks to playlists based on their Spotify popularity. Select a playlist for each popularity category.",
+    "selectPlaylistError": "Select a playlist for: {category}",
+    "popularity": {
+      "less": {
+        "label": "Low Popularity Playlist",
+        "placeholder": "Select playlist for low popularity...",
+        "title": "Low Popularity",
+        "description": "Add tracks with low popularity (0-20)"
+      },
+      "lessMedium": {
+        "label": "Low-Medium Popularity Playlist",
+        "placeholder": "Select playlist for low-medium popularity...",
+        "title": "Low-Medium Popularity",
+        "description": "Add tracks with low-medium popularity (21-40)"
+      },
+      "medium": {
+        "label": "Medium Popularity Playlist",
+        "placeholder": "Select playlist for medium popularity...",
+        "title": "Medium Popularity",
+        "description": "Add tracks with medium popularity (41-60)"
+      },
+      "moreMedium": {
+        "label": "Medium-High Popularity Playlist",
+        "placeholder": "Select playlist for medium-high popularity...",
+        "title": "Medium-High Popularity",
+        "description": "Add tracks with medium-high popularity (61-80)"
+      },
+      "more": {
+        "label": "High Popularity Playlist",
+        "placeholder": "Select playlist for high popularity...",
+        "title": "High Popularity",
+        "description": "Add tracks with high popularity (81-100)"
+      }
+    }
+  },
+  "artist": {
+    "sectionTitle": "Track Management by Artist",
+    "sectionDescription": "Select an artist from your library to organize their tracks into playlists by popularity",
+    "searchPlaceholder": "Search artists...",
+    "trackCount": "{count} tracks",
+    "noArtists": "No artists found in your library",
+    "noResults": "No artists match your search",
+    "loadingArtists": "Loading artists...",
+    "submitButton": "Organize Tracks",
+    "selectPrompt": "Select an artist to continue"
+  },
+  "playlist": {
+    "defaultLabel": "Select playlist",
+    "defaultPlaceholder": "Choose a playlist...",
+    "refreshTitle": "Refresh playlists",
+    "loadingMessage": "Loading playlists...",
+    "trackCount": "{count} tracks"
+  },
+  "errors": {
+    "unauthorized": "Unauthorized. Check your Spotify credentials.",
+    "badRequest": "Invalid request",
+    "notFound": "Resource not found",
+    "serverError": "Server error. Please try again later.",
+    "connectionError": "Unable to connect to the backend. Make sure the server is running.",
+    "unknownError": "Unknown error",
+    "networkError": "Network error. Check your internet connection.",
+    "authRequired": "Authentication required or session expired. Redirecting...",
+    "internalServer": "Internal server error. Please try again later.",
+    "genericError": "An error occurred.",
+    "cannotConnect": "Unable to connect to the server. Check your connection.",
+    "unexpectedError": "An unexpected error occurred."
+  },
+  "success": {
+    "tracksAddedLess": "Tracks added to playlist (low popularity)",
+    "tracksAddedLessMedium": "Tracks added to playlist (low-medium popularity)",
+    "tracksAddedMedium": "Tracks added to playlist (medium popularity)",
+    "tracksAddedMoreMedium": "Tracks added to playlist (medium-high popularity)",
+    "tracksAddedMore": "Tracks added to playlist (high popularity)",
+    "artistTracksAdded": "Artist tracks added to playlists",
+    "operationSuccess": "Operation completed successfully",
+    "tracksRemoved": "Tracks successfully removed from library"
+  },
+  "validation": {
+    "invalidSpotifyId": "Invalid ID. Must be exactly {length} alphanumeric characters."
+  },
+  "language": {
+    "switchLabel": "Language"
+  },
+  "popularityPlaylists": {
+    "sectionTitle": "Your Popularity Playlists",
+    "trackCount": "{count} tracks",
+    "noPlaylists": "No popularity playlists found. Use the buttons above to create them.",
+    "loading": "Loading playlists..."
+  },
+  "backup": {
+    "sectionTitle": "Backup History",
+    "restore": "Restore",
+    "restoreConfirm": "Restore playlist \"{name}\" to its previous state?",
+    "restoreSuccess": "Playlist restored successfully",
+    "noSnapshots": "No backups available",
+    "trackCount": "{count} tracks",
+    "operationPopularity": "Popularity",
+    "operationArtist": "Artist",
+    "loading": "Loading backups...",
+    "delete": "Delete",
+    "deleteConfirm": "Delete backup of \"{name}\"? This action cannot be undone.",
+    "deleteSuccess": "Backup deleted successfully"
+  }
+}

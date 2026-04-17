@@ -1,0 +1,194 @@
+{
+  "common": {
+    "close": "Chiudi",
+    "retry": "Riprova",
+    "loading": "Elaborazione...",
+    "refreshing": "Aggiornamento...",
+    "somethingWentWrong": "Qualcosa è andato storto",
+    "unexpectedError": "Si è verificato un errore imprevisto",
+    "yes": "Sì",
+    "no": "No"
+  },
+  "auth": {
+    "loginTitle": "Bentornato",
+    "registerTitle": "Crea Account",
+    "forgotPasswordTitle": "Reimposta Password",
+    "resetPasswordTitle": "Imposta Nuova Password",
+    "verifyEmailTitle": "Verifica Email",
+    "email": "Email",
+    "emailPlaceholder": "Inserisci la tua email",
+    "password": "Password",
+    "passwordPlaceholder": "Inserisci la tua password",
+    "confirmPassword": "Conferma Password",
+    "confirmPasswordPlaceholder": "Conferma la tua password",
+    "newPassword": "Nuova Password",
+    "newPasswordPlaceholder": "Inserisci la nuova password",
+    "currentPassword": "Password Attuale",
+    "loginButton": "Accedi",
+    "registerButton": "Crea Account",
+    "sendResetLink": "Invia Link di Reset",
+    "resetPasswordButton": "Reimposta Password",
+    "forgotPassword": "Password dimenticata?",
+    "register": "Registrati",
+    "login": "Accedi",
+    "noAccount": "Non hai un account?",
+    "hasAccount": "Hai già un account?",
+    "or": "oppure",
+    "loginWithSpotify": "Continua con Spotify",
+    "fillAllFields": "Compila tutti i campi",
+    "passwordsDoNotMatch": "Le password non corrispondono",
+    "passwordMinLength": "La password deve essere di almeno 8 caratteri",
+    "loginSuccess": "Accesso effettuato!",
+    "loginFailed": "Accesso fallito. Controlla le tue credenziali.",
+    "registrationSuccess": "Registrazione completata!",
+    "registrationFailed": "Registrazione fallita. Riprova.",
+    "checkEmail": "Controlla la tua email per verificare l'account.",
+    "goToLogin": "Vai al Login",
+    "backToLogin": "Torna al Login",
+    "forgotPasswordDescription": "Inserisci la tua email e ti invieremo un link per reimpostare la password.",
+    "resetEmailSent": "Se esiste un account con questa email, ti è stato inviato un link per reimpostare la password.",
+    "resetPasswordDescription": "Inserisci la tua nuova password qui sotto.",
+    "passwordResetSuccess": "La password è stata reimpostata con successo!",
+    "resetPasswordFailed": "Reimpostazione password fallita. Il link potrebbe essere scaduto.",
+    "verificationFailed": "Verifica email fallita. Il link potrebbe essere non valido o scaduto.",
+    "verifying": "Verifica della tua email...",
+    "emailVerified": "La tua email è stata verificata con successo!",
+    "changePassword": "Cambia Password",
+    "changePasswordButton": "Aggiorna Password",
+    "changePasswordFailed": "Impossibile cambiare la password. Controlla la password attuale.",
+    "passwordChangedSuccess": "Password cambiata con successo!",
+    "spotifyLinkedSuccess": "Account Spotify collegato con successo!",
+    "spotifyLinkFailed": "Collegamento dell'account Spotify fallito.",
+    "spotifyUnlinkedSuccess": "Account Spotify scollegato con successo.",
+    "spotifyUnlinkFailed": "Scollegamento dell'account Spotify fallito.",
+    "confirmUnlinkSpotify": "Sei sicuro di voler scollegare il tuo account Spotify?",
+    "spotifyLoginFailed": "Avvio del login Spotify fallito."
+  },
+  "settings": {
+    "title": "Impostazioni",
+    "email": "Email",
+    "emailVerified": "Email Verificata",
+    "changePassword": "Cambia Password",
+    "currentPassword": "Password Attuale",
+    "newPassword": "Nuova Password",
+    "confirmNewPassword": "Conferma Nuova Password",
+    "changePasswordButton": "Aggiorna Password",
+    "spotifyAccount": "Account Spotify",
+    "spotifyStatus": "Stato",
+    "linked": "Collegato",
+    "notLinked": "Non Collegato",
+    "linkSpotify": "Collega Spotify",
+    "unlinkSpotify": "Scollega Spotify",
+    "dangerZone": "Zona Pericolosa",
+    "logout": "Esci"
+  },
+  "home": {
+    "title": "Tracks by Popularity",
+    "subtitle": "Gestisci le tue playlist Spotify in base alla popolarità delle tracce"
+  },
+  "tracks": {
+    "sectionTitle": "Gestione Tracce per Popolarità",
+    "sectionDescription": "Aggiungi le tue tracce alle playlist in base alla loro popolarità su Spotify. Seleziona una playlist per ogni categoria di popolarità.",
+    "selectPlaylistError": "Seleziona una playlist per: {category}",
+    "popularity": {
+      "less": {
+        "label": "Playlist per Popolarità Bassa",
+        "placeholder": "Seleziona playlist per popolarità bassa...",
+        "title": "Popolarità Bassa",
+        "description": "Aggiungi tracce con popolarità bassa (0-20)"
+      },
+      "lessMedium": {
+        "label": "Playlist per Popolarità Medio-Bassa",
+        "placeholder": "Seleziona playlist per popolarità medio-bassa...",
+        "title": "Popolarità Medio-Bassa",
+        "description": "Aggiungi tracce con popolarità medio-bassa (21-40)"
+      },
+      "medium": {
+        "label": "Playlist per Popolarità Media",
+        "placeholder": "Seleziona playlist per popolarità media...",
+        "title": "Popolarità Media",
+        "description": "Aggiungi tracce con popolarità media (41-60)"
+      },
+      "moreMedium": {
+        "label": "Playlist per Popolarità Medio-Alta",
+        "placeholder": "Seleziona playlist per popolarità medio-alta...",
+        "title": "Popolarità Medio-Alta",
+        "description": "Aggiungi tracce con popolarità medio-alta (61-80)"
+      },
+      "more": {
+        "label": "Playlist per Popolarità Alta",
+        "placeholder": "Seleziona playlist per popolarità alta...",
+        "title": "Popolarità Alta",
+        "description": "Aggiungi tracce con popolarità alta (81-100)"
+      }
+    }
+  },
+  "artist": {
+    "sectionTitle": "Gestione Tracce per Artista",
+    "sectionDescription": "Seleziona un artista dalla tua libreria per organizzare le sue tracce in playlist per popolarità",
+    "searchPlaceholder": "Cerca artisti...",
+    "trackCount": "{count} tracce",
+    "noArtists": "Nessun artista trovato nella tua libreria",
+    "noResults": "Nessun artista corrisponde alla ricerca",
+    "loadingArtists": "Caricamento artisti...",
+    "submitButton": "Organizza Tracce",
+    "selectPrompt": "Seleziona un artista per continuare"
+  },
+  "playlist": {
+    "defaultLabel": "Seleziona playlist",
+    "defaultPlaceholder": "Scegli una playlist...",
+    "refreshTitle": "Aggiorna playlist",
+    "loadingMessage": "Caricamento playlist...",
+    "trackCount": "{count} tracce"
+  },
+  "errors": {
+    "unauthorized": "Non autorizzato. Verifica le credenziali Spotify.",
+    "badRequest": "Richiesta non valida",
+    "notFound": "Risorsa non trovata",
+    "serverError": "Errore del server. Riprova più tardi.",
+    "connectionError": "Impossibile connettersi al backend. Assicurati che il server sia in esecuzione.",
+    "unknownError": "Errore sconosciuto",
+    "networkError": "Errore di rete. Controlla la connessione internet.",
+    "authRequired": "Autenticazione richiesta o sessione scaduta. Reindirizzamento...",
+    "internalServer": "Errore interno del server. Riprova più tardi.",
+    "genericError": "Si è verificato un errore.",
+    "cannotConnect": "Impossibile connettersi al server. Controlla la tua connessione.",
+    "unexpectedError": "Si è verificato un errore imprevisto."
+  },
+  "success": {
+    "tracksAddedLess": "Tracce aggiunte alla playlist (popolarità bassa)",
+    "tracksAddedLessMedium": "Tracce aggiunte alla playlist (popolarità medio-bassa)",
+    "tracksAddedMedium": "Tracce aggiunte alla playlist (popolarità media)",
+    "tracksAddedMoreMedium": "Tracce aggiunte alla playlist (popolarità medio-alta)",
+    "tracksAddedMore": "Tracce aggiunte alla playlist (popolarità alta)",
+    "artistTracksAdded": "Tracce dell'artista aggiunte alle playlist",
+    "operationSuccess": "Operazione completata con successo",
+    "tracksRemoved": "Tracce rimosse con successo dalla libreria"
+  },
+  "validation": {
+    "invalidSpotifyId": "ID non valido. Deve essere esattamente {length} caratteri alfanumerici."
+  },
+  "language": {
+    "switchLabel": "Lingua"
+  },
+  "popularityPlaylists": {
+    "sectionTitle": "Le Tue Playlist per Popolarità",
+    "trackCount": "{count} tracce",
+    "noPlaylists": "Nessuna playlist per popolarità trovata. Usa i pulsanti sopra per crearle.",
+    "loading": "Caricamento playlist..."
+  },
+  "backup": {
+    "sectionTitle": "Cronologia Backup",
+    "restore": "Ripristina",
+    "restoreConfirm": "Ripristinare la playlist \"{name}\" allo stato precedente?",
+    "restoreSuccess": "Playlist ripristinata con successo",
+    "noSnapshots": "Nessun backup disponibile",
+    "trackCount": "{count} tracce",
+    "operationPopularity": "Popolarità",
+    "operationArtist": "Artista",
+    "loading": "Caricamento backup...",
+    "delete": "Elimina",
+    "deleteConfirm": "Eliminare il backup di \"{name}\"? Questa azione non può essere annullata.",
+    "deleteSuccess": "Backup eliminato con successo"
+  }
+}
