@@ -194,9 +194,15 @@ builder.Services.AddHttpClient();
 
 var app = builder.Build();
 
-// Apply pending EF Core migrations automatically
-using (var scope = app.Services.CreateScope())
+// Apply pending EF Core migrations.
+// Safe default: migrate automatically in Development, otherwise require explicit opt-in.
+var migrateOnStartup =
+    builder.Environment.IsDevelopment() ||
+    string.Equals(Environment.GetEnvironmentVariable("MIGRATE_ON_STARTUP"), "true", StringComparison.OrdinalIgnoreCase);
+
+if (migrateOnStartup)
 {
+    using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.Migrate();
 }
