@@ -1,4 +1,4 @@
-import { ref, type Ref } from 'vue'
+import { ref, type Ref, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import { deduplicatedRequest, createCacheKey } from './useRequestDeduplication'
 import { loadFromStorage, saveToStorage, clearStorage } from './useLocalStorage'
 
@@ -196,33 +196,59 @@ export function useCachedApi<T>(
     await fetchData(false)
   }
 
-  // Set up focus revalidation (OCP: easy to add new event handlers)
-  if (revalidateOnFocus && typeof window !== 'undefined') {
-    const handleVisibilityChange = (): void => {
-      if (document.visibilityState === 'visible' && data.value && isCacheValid()) {
-        revalidate()
+  const attachRevalidationListeners = (): (() => void) => {
+    if (typeof window === 'undefined') return () => {}
+
+    const cleanups: Array<() => void> = []
+
+    if (revalidateOnFocus) {
+      const handleVisibilityChange = (): void => {
+        if (document.visibilityState === 'visible' && data.value && isCacheValid()) {
+          revalidate()
+        }
       }
+
+      const handleFocus = (): void => {
+        if (data.value && isCacheValid()) {
+          revalidate()
+        }
+      }
+
+      document.addEventListener('visibilitychange', handleVisibilityChange)
+      window.addEventListener('focus', handleFocus)
+
+      cleanups.push(() => document.removeEventListener('visibilitychange', handleVisibilityChange))
+      cleanups.push(() => window.removeEventListener('focus', handleFocus))
     }
 
-    const handleFocus = (): void => {
-      if (data.value && isCacheValid()) {
-        revalidate()
+    if (revalidateOnReconnect) {
+      const handleOnline = (): void => {
+        if (data.value && isCacheValid()) {
+          revalidate()
+        }
       }
+
+      window.addEventListener('online', handleOnline)
+      cleanups.push(() => window.removeEventListener('online', handleOnline))
     }
 
-    document.addEventListener('visibilitychange', handleVisibilityChange)
-    window.addEventListener('focus', handleFocus)
+    return () => cleanups.forEach((fn) => fn())
   }
 
-  // Set up reconnect revalidation (OCP)
-  if (revalidateOnReconnect && typeof window !== 'undefined') {
-    const handleOnline = (): void => {
-      if (data.value && isCacheValid()) {
-        revalidate()
-      }
-    }
-
-    window.addEventListener('online', handleOnline)
+  // Register listeners with proper cleanup when inside a component lifecycle.
+  const instance = getCurrentInstance()
+  if (instance) {
+    let detach: (() => void) | null = null
+    onMounted(() => {
+      detach = attachRevalidationListeners()
+    })
+    onUnmounted(() => {
+      detach?.()
+      detach = null
+    })
+  } else {
+    // Fallback: if used outside a component, attach without lifecycle cleanup.
+    attachRevalidationListeners()
   }
 
   // Initialize

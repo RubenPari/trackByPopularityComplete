@@ -6,9 +6,6 @@ import { createLogger } from '@/utils/logger'
 
 const logger = createLogger('usePlaylistsWithCache')
 
-// Module-level cache state (shared across components)
-let cachedPlaylists: PlaylistInfo[] | null = null
-let lastFetchTime: number = 0
 const CACHE_STALE_TIME = 5 * 60 * 1000 // 5 minutes
 
 /**
@@ -55,34 +52,25 @@ export function usePlaylistsWithCache() {
     },
   )
 
-  // Use module-level cache for shared state
-  if (playlistsFromCache.value) {
-    cachedPlaylists = playlistsFromCache.value
-    lastFetchTime = Date.now()
-  }
-
   /**
    * Force refresh playlists
    */
   const forceRefresh = async (): Promise<void> => {
     clearCache()
     await refresh()
-    if (playlistsFromCache.value) {
-      cachedPlaylists = playlistsFromCache.value
-    }
   }
 
   /**
    * Check if cache is stale
    */
   const isCacheStale = computed(() => {
-    if (!lastFetchTime) return true
-    return Date.now() - lastFetchTime > CACHE_STALE_TIME
+    if (!lastUpdated.value) return true
+    return Date.now() - lastUpdated.value > CACHE_STALE_TIME
   })
 
   return {
     /** List of user playlists (from cache or fresh) */
-    playlists: computed(() => cachedPlaylists || []),
+    playlists: computed(() => playlistsFromCache.value || []),
     /** Loading state for initial fetch */
     loading,
     /** Error state */
