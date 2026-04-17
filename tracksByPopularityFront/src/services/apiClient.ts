@@ -34,12 +34,6 @@ function shouldRedirectToSpotifyLogin(requestUrl: string | undefined): boolean {
 
 // Setup interceptors
 apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem('auth_token')
-
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`
-  }
-
   const spotifyUserId = localStorage.getItem('spotify_user_id')
   if (spotifyUserId) {
     config.headers['X-Spotify-User-Id'] = spotifyUserId

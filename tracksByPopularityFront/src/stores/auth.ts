@@ -3,22 +3,20 @@ import { ref, computed } from 'vue'
 import { accountApiService } from '@/services/accountApi'
 import type { User } from '@/types/api'
 
-const TOKEN_KEY = 'auth_token'
 const USER_KEY = 'auth_user'
 
 export const useAuthStore = defineStore('auth', () => {
-  const token = ref<string | null>(localStorage.getItem(TOKEN_KEY))
   const user = ref<User | null>(JSON.parse(localStorage.getItem(USER_KEY) || 'null'))
   const spotifyLinked = ref(false)
 
-  const isAuthenticated = computed(() => !!token.value && !!user.value)
+  // Cookie-first auth: if we have a user loaded, we consider the session authenticated.
+  // The backend authenticates requests via the HttpOnly access_token cookie.
+  const isAuthenticated = computed(() => !!user.value)
   const isEmailVerified = computed(() => user.value?.isEmailVerified ?? false)
 
-  const setAuth = (newToken: string, newUser: User) => {
-    token.value = newToken
+  const setAuth = (newUser: User) => {
     user.value = newUser
     spotifyLinked.value = newUser.isSpotifyLinked
-    localStorage.setItem(TOKEN_KEY, newToken)
     localStorage.setItem(USER_KEY, JSON.stringify(newUser))
   }
 
@@ -31,10 +29,8 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const clearAuth = () => {
-    token.value = null
     user.value = null
     spotifyLinked.value = false
-    localStorage.removeItem(TOKEN_KEY)
     localStorage.removeItem(USER_KEY)
     localStorage.removeItem('spotify_user_id')
   }
@@ -42,7 +38,7 @@ export const useAuthStore = defineStore('auth', () => {
   const login = async (email: string, password: string) => {
     const response = await accountApiService.login(email, password)
     if (response.success && response.data) {
-      setAuth(response.data.token, response.data.user)
+      setAuth(response.data.user)
       return { success: true }
     }
     return { success: false, error: response.error }
@@ -62,10 +58,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const checkAuth = async () => {
-    if (!token.value) {
-      return false
-    }
-
     try {
       const response = await accountApiService.getCurrentUser()
       if (response.success && response.data) {
@@ -74,7 +66,7 @@ export const useAuthStore = defineStore('auth', () => {
         return true
       }
     } catch {
-      // Token might be expired or invalid
+      // Session might be expired or invalid
     }
 
     clearAuth()
@@ -113,7 +105,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   return {
-    token,
     user,
     spotifyLinked,
     isAuthenticated,
