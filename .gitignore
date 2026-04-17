@@ -39,6 +39,7 @@ ehthumbs_vista.db
 # =============================================
 .claude/
 .crush/
+.cursor/
 
 # =============================================
 # Cache e file temporanei
