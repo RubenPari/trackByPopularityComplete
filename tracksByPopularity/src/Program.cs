@@ -167,7 +167,6 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(sp =>
 
 // Add response caching for improved performance
 builder.Services.AddResponseCaching();
-builder.Services.AddHostedService<RedisCacheResetService>();
 builder.Services.AddHostedService<SnapshotCleanupService>();
 
 // Register services
