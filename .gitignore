@@ -1,0 +1,126 @@
+# =============================================
+# File ambiente e segreti
+# =============================================
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+
+# =============================================
+# Sistema operativo
+# =============================================
+.DS_Store
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.lnk
+
+# =============================================
+# IDE e Editor
+# =============================================
+.idea/
+*.swp
+*.swo
+*~
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.vs/
+*.sublime-workspace
+*.sublime-project
+*.code-workspace
+.history/
+.nyc_output/
+
+# =============================================
+# Claude / Agenti AI
+# =============================================
+.claude/
+.crush/
+
+# =============================================
+# Cache e file temporanei
+# =============================================
+*.tmp
+*.temp
+*.bak
+*.backup
+*~
+*.log
+logs/
+
+# =============================================
+# Backend .NET (cartelle build/output)
+# =============================================
+tracksByPopularity/bin/
+tracksByPopularity/obj/
+tracksByPopularity/.config/
+
+# =============================================
+# Frontend Node.js (cartelle build/output)
+# =============================================
+tracksByPopularityFront/node_modules/
+tracksByPopularityFront/dist/
+tracksByPopularityFront/dist-ssr/
+tracksByPopularityFront/coverage/
+tracksByPopularityFront/*.local
+
+# =============================================
+# Test E2E (Playwright/Cypress)
+# =============================================
+test-results/
+playwright-report/
+/cypress/videos/
+/cypress/screenshots/
+__screenshots__/
+
+# =============================================
+# Docker e container
+# =============================================
+*.dockerignore
+
+# =============================================
+# Certificati e chiavi di sviluppo
+# =============================================
+*.pfx
+*.cer
+*.crt
+*.p12
+*.jks
+
+# =============================================
+# Database locali e file di lock
+# =============================================
+*.db
+*.sqlite
+*.sqlite3
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+*.sig
+
+# =============================================
+# Output della build
+# =============================================
+*.exe
+*.dll
+*.so
+*.dylib
+*.app
+*.ipa
+*.appxbundle
+*.appxupload
+
+# =============================================
+# File generici da ignorare
+# =============================================
+*.bak
+*.cache
+*.lock
+*.user
+*.userosscache
+*.suo
+*.sln.docstates
+*.swp
