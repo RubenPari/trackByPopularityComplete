@@ -3,6 +3,10 @@ import type { AxiosResponse, AxiosError } from 'axios'
 import { useApiStore } from '@/stores/api'
 import i18n from '@/i18n'
 
+let isSpotifyRedirectInProgress = false
+let lastSpotifyRedirectAt = 0
+const SPOTIFY_REDIRECT_COOLDOWN_MS = 5000
+
 // Define the base URL from Vite env variables
 // Empty string means relative URLs (e.g., behind a reverse proxy like nginx)
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080'
@@ -52,7 +56,18 @@ apiClient.interceptors.response.use(
       // Handle known status codes
       if (status === 401 || status === 403) {
         apiStore.error = t('errors.authRequired')
-        if (shouldRedirectToSpotifyLogin(error.config?.url)) {
+
+        const now = Date.now()
+        const inCooldown = now - lastSpotifyRedirectAt < SPOTIFY_REDIRECT_COOLDOWN_MS
+
+        if (
+          shouldRedirectToSpotifyLogin(error.config?.url) &&
+          !isSpotifyRedirectInProgress &&
+          !inCooldown
+        ) {
+          isSpotifyRedirectInProgress = true
+          lastSpotifyRedirectAt = now
+
           // Fetch the Spotify login URL from the backend and redirect
           try {
             const loginResponse = await axios.get(`${API_BASE_URL}/auth/login`, {
@@ -61,10 +76,17 @@ apiClient.interceptors.response.use(
             const loginUrl = loginResponse.data?.data?.loginUrl
             if (loginUrl) {
               window.location.href = loginUrl
+              return Promise.reject(error)
             }
           } catch {
             // Fallback: redirect to auth/login endpoint directly
             window.location.href = `${API_BASE_URL}/auth/login`
+            return Promise.reject(error)
+          } finally {
+            // If navigation does not happen (eg popup blockers, network issues), allow future retries.
+            setTimeout(() => {
+              isSpotifyRedirectInProgress = false
+            }, SPOTIFY_REDIRECT_COOLDOWN_MS)
           }
         }
       } else if (status === 500) {
