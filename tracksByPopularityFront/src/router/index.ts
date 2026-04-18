@@ -9,6 +9,7 @@ const router = createRouter({
       name: 'home',
       // Lazy load - HomeView is the main page, keep it eagerly loaded for fast FCP
       component: () => import('@/views/HomeView.vue'),
+      meta: { requiresAuth: true },
     },
     {
       path: '/login',

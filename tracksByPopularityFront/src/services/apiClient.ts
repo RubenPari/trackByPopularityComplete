@@ -3,6 +3,16 @@ import type { AxiosResponse, AxiosError } from 'axios'
 import { useApiStore } from '@/stores/api'
 import i18n from '@/i18n'
 
+const USER_KEY = 'auth_user'
+const SPOTIFY_REDIRECT_GUARD_KEY = 'spotify_redirect_guard_at'
+const GUEST_AUTH_PATHS = new Set([
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+])
+
 let isSpotifyRedirectInProgress = false
 let lastSpotifyRedirectAt = 0
 const SPOTIFY_REDIRECT_COOLDOWN_MS = 5000
@@ -19,20 +29,67 @@ export const apiClient = axios.create({
   },
 })
 
-function shouldRedirectToSpotifyLogin(requestUrl: string | undefined): boolean {
-  if (!requestUrl) return false
+function normalizeRequestPath(requestUrl: string | undefined): string {
+  if (!requestUrl) return ''
 
-  // Axios config.url may be relative (e.g. "/api/track/artists")
+  try {
+    const resolvedUrl = new URL(requestUrl, API_BASE_URL)
+    return resolvedUrl.pathname
+  } catch {
+    return requestUrl
+  }
+}
+
+function isGuestAuthPath(pathname: string): boolean {
+  if (!pathname) return false
+
+  if (GUEST_AUTH_PATHS.has(pathname)) return true
+
+  return pathname.startsWith('/reset-password/') || pathname.startsWith('/verify-email/')
+}
+
+function isAppAuthenticated(): boolean {
+  try {
+    return !!localStorage.getItem(USER_KEY)
+  } catch {
+    return false
+  }
+}
+
+function getSessionRedirectGuardTimestamp(): number {
+  try {
+    const rawValue = sessionStorage.getItem(SPOTIFY_REDIRECT_GUARD_KEY)
+    if (!rawValue) return 0
+
+    const parsedValue = Number(rawValue)
+    return Number.isFinite(parsedValue) ? parsedValue : 0
+  } catch {
+    return 0
+  }
+}
+
+function setSessionRedirectGuardTimestamp(timestamp: number): void {
+  try {
+    sessionStorage.setItem(SPOTIFY_REDIRECT_GUARD_KEY, String(timestamp))
+  } catch {
+    // Ignore sessionStorage access failures
+  }
+}
+
+function shouldRedirectToSpotifyLogin(requestUrl: string | undefined): boolean {
+  const requestPath = normalizeRequestPath(requestUrl)
+  if (!requestPath) return false
+
   // Avoid redirecting when the user simply needs to re-authenticate to the app account.
-  if (requestUrl.startsWith('/api/account')) return false
+  if (requestPath.startsWith('/api/account')) return false
 
   // Spotify-protected endpoints in this app.
   return (
-    requestUrl.startsWith('/api/track') ||
-    requestUrl.startsWith('/api/playlist') ||
-    requestUrl.startsWith('/api/backup') ||
-    requestUrl.startsWith('/track') ||
-    requestUrl.startsWith('/playlist')
+    requestPath.startsWith('/api/track') ||
+    requestPath.startsWith('/api/playlist') ||
+    requestPath.startsWith('/api/backup') ||
+    requestPath.startsWith('/track') ||
+    requestPath.startsWith('/playlist')
   )
 }
 
@@ -55,18 +112,32 @@ apiClient.interceptors.response.use(
 
       // Handle known status codes
       if (status === 401 || status === 403) {
-        apiStore.error = t('errors.authRequired')
+        const requestPath = normalizeRequestPath(error.config?.url)
+        const spotifyProtectedRequest = shouldRedirectToSpotifyLogin(error.config?.url)
+        const isAccountRequest = requestPath.startsWith('/api/account')
+        const currentPathname = window.location.pathname
+        const isOnGuestAuthRoute = isGuestAuthPath(currentPathname)
+
+        if (!isAccountRequest || !isOnGuestAuthRoute) {
+          apiStore.error = t('errors.authRequired')
+        }
 
         const now = Date.now()
-        const inCooldown = now - lastSpotifyRedirectAt < SPOTIFY_REDIRECT_COOLDOWN_MS
+        const inMemoryCooldown = now - lastSpotifyRedirectAt < SPOTIFY_REDIRECT_COOLDOWN_MS
+        const sessionGuardTimestamp = getSessionRedirectGuardTimestamp()
+        const inSessionCooldown = now - sessionGuardTimestamp < SPOTIFY_REDIRECT_COOLDOWN_MS
 
         if (
-          shouldRedirectToSpotifyLogin(error.config?.url) &&
+          spotifyProtectedRequest &&
+          isAppAuthenticated() &&
+          !isOnGuestAuthRoute &&
           !isSpotifyRedirectInProgress &&
-          !inCooldown
+          !inMemoryCooldown &&
+          !inSessionCooldown
         ) {
           isSpotifyRedirectInProgress = true
           lastSpotifyRedirectAt = now
+          setSessionRedirectGuardTimestamp(now)
 
           // Fetch the Spotify login URL from the backend and redirect
           try {
