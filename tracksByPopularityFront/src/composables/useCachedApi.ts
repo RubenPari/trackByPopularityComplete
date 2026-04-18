@@ -168,7 +168,12 @@ export function useCachedApi<T>(
   const refresh = async (): Promise<void> => {
     isRevalidating.value = true
     onRevalidating?.(true)
-    await fetchData(false)
+
+    try {
+      await fetchData(false)
+    } catch {
+      // Error state is already handled in fetchData
+    }
   }
 
   /**
