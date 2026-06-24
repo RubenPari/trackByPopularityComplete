@@ -1,0 +1,12 @@
+global using Microsoft.Extensions.Logging;
+global using tracksByPopularity.Application.Configuration;
+global using tracksByPopularity.Application.Interfaces;
+global using tracksByPopularity.Application.DTOs;
+global using tracksByPopularity.Application.Services;
+global using tracksByPopularity.Application.Mapping;
+global using tracksByPopularity.Application.Validators;
+global using tracksByPopularity.Domain.Entities;
+global using tracksByPopularity.Domain.ValueObjects;
+global using tracksByPopularity.Domain.Exceptions;
+global using tracksByPopularity.Domain.Enums;
+global using tracksByPopularity.Domain.Services;
