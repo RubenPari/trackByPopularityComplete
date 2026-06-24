@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { ApiResponse } from '@/types/api'
 import { createLogger } from '@/utils/logger'
 import { SUCCESS_MESSAGES, ERROR_MESSAGES } from '@/utils/constants'
@@ -7,67 +7,78 @@ import i18n from '@/i18n'
 
 const logger = createLogger('ApiStore')
 
-/**
- * Global API store for managing loading, error, and success states
- */
-export const useApiStore = defineStore('api', () => {
-  const loading = ref(false)
-  const error = ref<string | null>(null)
-  const success = ref<string | null>(null)
+export type OperationKey = string
 
-  /**
-   * Executes an API call and manages global state
-   */
+export const useApiStore = defineStore('api', () => {
+  const loading = ref<Record<OperationKey, boolean>>({})
+  const errors = ref<Record<OperationKey, string | null>>({})
+  const successes = ref<Record<OperationKey, string | null>>({})
+
+  const anyLoading = computed(() => Object.values(loading.value).some(Boolean))
+
+  const isLoading = (key: OperationKey): boolean => loading.value[key] ?? false
+  const getError = (key: OperationKey): string | null => errors.value[key] ?? null
+  const getSuccess = (key: OperationKey): string | null => successes.value[key] ?? null
+
+  const clearOperation = (key: OperationKey) => {
+    delete loading.value[key]
+    delete errors.value[key]
+    delete successes.value[key]
+  }
+
+  const clearMessages = () => {
+    errors.value = {}
+    successes.value = {}
+  }
+
   const executeApiCall = async <T = unknown>(
+    key: OperationKey,
     apiCall: () => Promise<ApiResponse<T>>,
     successMessage?: string,
   ) => {
-    loading.value = true
-    error.value = null
-    success.value = null
+    loading.value[key] = true
+    errors.value[key] = null
+    successes.value[key] = null
 
     const t = i18n.global.t
 
     try {
-      logger.debug('Executing API call')
+      logger.debug(`Executing API call: ${key}`)
       const response = await apiCall()
 
       if (response.success) {
         const message = successMessage
           ? t(successMessage)
           : response.message || t(SUCCESS_MESSAGES.OPERATION_SUCCESS)
-        success.value = message
-        logger.info('API call succeeded', { message })
-        return { success: true, data: response.data, message: response.message }
+        successes.value[key] = message
+        logger.info(`API call succeeded: ${key}`, { message })
+        return { success: true as const, data: response.data, message: response.message }
       } else {
         const errorMsg = response.error || t(ERROR_MESSAGES.UNKNOWN_ERROR)
-        error.value = errorMsg
-        logger.warn('API call failed', { error: errorMsg, errorCode: response.errorCode })
-        return { success: false, error: response.error }
+        errors.value[key] = errorMsg
+        logger.warn(`API call failed: ${key}`, { error: errorMsg, errorCode: response.errorCode })
+        return { success: false as const, error: errorMsg }
       }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : t(ERROR_MESSAGES.UNKNOWN_ERROR)
-      error.value = errorMessage
-      logger.error('API call exception', err)
-      return { success: false, error: errorMessage }
+      errors.value[key] = errorMessage
+      logger.error(`API call exception: ${key}`, err)
+      return { success: false as const, error: errorMessage }
     } finally {
-      loading.value = false
+      loading.value[key] = false
     }
-  }
-
-  /**
-   * Clears all messages
-   */
-  const clearMessages = () => {
-    error.value = null
-    success.value = null
   }
 
   return {
     loading,
-    error,
-    success,
+    errors,
+    successes,
+    anyLoading,
+    isLoading,
+    getError,
+    getSuccess,
     executeApiCall,
+    clearOperation,
     clearMessages,
   }
 })

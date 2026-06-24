@@ -7,39 +7,13 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      // Lazy load - HomeView is the main page, keep it eagerly loaded for fast FCP
       component: () => import('@/views/HomeView.vue'),
       meta: { requiresAuth: true },
     },
     {
       path: '/login',
       name: 'login',
-      // Lazy load - Login page is rarely the first page visited
       component: () => import('@/views/LoginView.vue'),
-      meta: { guest: true },
-    },
-    {
-      path: '/register',
-      name: 'register',
-      component: () => import('@/views/RegisterView.vue'),
-      meta: { guest: true },
-    },
-    {
-      path: '/forgot-password',
-      name: 'forgot-password',
-      component: () => import('@/views/ForgotPasswordView.vue'),
-      meta: { guest: true },
-    },
-    {
-      path: '/reset-password/:token',
-      name: 'reset-password',
-      component: () => import('@/views/ResetPasswordView.vue'),
-      meta: { guest: true },
-    },
-    {
-      path: '/verify-email/:token',
-      name: 'verify-email',
-      component: () => import('@/views/VerifyEmailView.vue'),
       meta: { guest: true },
     },
     {
@@ -62,13 +36,11 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
 
-  if (!authStore.user) {
-    await authStore.checkAuth()
-  }
+  const isAuthenticated = await authStore.checkAuth()
 
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    next({ name: 'login', query: { redirect: to.fullPath } })
-  } else if (to.meta.guest && authStore.isAuthenticated) {
+  if (to.meta.requiresAuth && !isAuthenticated) {
+    next({ name: 'login' })
+  } else if (to.meta.guest && isAuthenticated) {
     next({ name: 'home' })
   } else {
     next()

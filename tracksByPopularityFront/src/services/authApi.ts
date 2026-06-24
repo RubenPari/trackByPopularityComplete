@@ -28,6 +28,13 @@ export class AuthApiService {
       `${API_ENDPOINTS.AUTH.CALLBACK}?code=${encodeURIComponent(code)}`,
     )
   }
+
+  /**
+   * Logs the user out
+   */
+  async logout(): Promise<ApiResponse> {
+    return httpClient.post(API_ENDPOINTS.AUTH.LOGOUT)
+  }
 }
 
 export const authApiService = new AuthApiService()

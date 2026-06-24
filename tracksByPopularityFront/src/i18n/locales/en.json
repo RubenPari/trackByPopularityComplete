@@ -62,10 +62,13 @@
     "spotifyUnlinkedSuccess": "Spotify account unlinked successfully.",
     "spotifyUnlinkFailed": "Failed to unlink Spotify account.",
     "confirmUnlinkSpotify": "Are you sure you want to unlink your Spotify account?",
-    "spotifyLoginFailed": "Failed to initiate Spotify login."
+    "spotifyLoginFailed": "Failed to initiate Spotify login.",
+    "loginDescription": "Sign in with your Spotify account to organize your library."
   },
   "settings": {
     "title": "Settings",
+    "account": "Account",
+    "spotifyOnlyDescription": "You are authenticated with Spotify. Use the button below to log out.",
     "email": "Email",
     "emailVerified": "Email Verified",
     "changePassword": "Change Password",

@@ -1,125 +1,72 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { accountApiService } from '@/services/accountApi'
-import type { User } from '@/types/api'
+import { authApiService } from '@/services/authApi'
 
-const USER_KEY = 'auth_user'
+const SPOTIFY_USER_ID_KEY = 'spotify_user_id'
 
 export const useAuthStore = defineStore('auth', () => {
-  const user = ref<User | null>(JSON.parse(localStorage.getItem(USER_KEY) || 'null'))
-  const spotifyLinked = ref(false)
+  const isAuthenticated = ref(false)
+  const spotifyUserId = ref<string | null>(null)
+  const loading = ref(false)
 
-  // Cookie-first auth: if we have a user loaded, we consider the session authenticated.
-  // The backend authenticates requests via the HttpOnly access_token cookie.
-  const isAuthenticated = computed(() => !!user.value)
-  const isEmailVerified = computed(() => user.value?.isEmailVerified ?? false)
+  const isLoggedIn = computed(() => isAuthenticated.value)
 
-  const setAuth = (newUser: User) => {
-    user.value = newUser
-    spotifyLinked.value = newUser.isSpotifyLinked
-    localStorage.setItem(USER_KEY, JSON.stringify(newUser))
-  }
-
-  const setSpotifyLinked = (linked: boolean) => {
-    spotifyLinked.value = linked
-    if (user.value) {
-      user.value = { ...user.value, isSpotifyLinked: linked }
-      localStorage.setItem(USER_KEY, JSON.stringify(user.value))
-    }
-  }
-
-  const clearAuth = () => {
-    user.value = null
-    spotifyLinked.value = false
-    localStorage.removeItem(USER_KEY)
-    localStorage.removeItem('spotify_user_id')
-  }
-
-  const login = async (email: string, password: string) => {
-    const response = await accountApiService.login(email, password)
-    if (response.success && response.data) {
-      setAuth(response.data.user)
-      return { success: true }
-    }
-    return { success: false, error: response.error }
-  }
-
-  const register = async (email: string, password: string) => {
-    return await accountApiService.register(email, password)
-  }
-
-  const logout = async () => {
+  const checkAuth = async (): Promise<boolean> => {
+    loading.value = true
     try {
-      await accountApiService.logout()
-    } catch {
-      // Ignore errors during logout
-    }
-    clearAuth()
-  }
-
-  const checkAuth = async () => {
-    try {
-      const response = await accountApiService.getCurrentUser()
-      if (response.success && response.data) {
-        user.value = response.data
-        spotifyLinked.value = response.data.isSpotifyLinked
+      const response = await authApiService.checkAuth()
+      if (response.success && response.data?.authenticated) {
+        isAuthenticated.value = true
+        spotifyUserId.value = response.data.userId ?? localStorage.getItem(SPOTIFY_USER_ID_KEY)
+        if (response.data.userId) {
+          localStorage.setItem(SPOTIFY_USER_ID_KEY, response.data.userId)
+        }
         return true
       }
-    } catch {
+    } catch (error) {
       // Session might be expired or invalid
+      console.error('Auth check failed', error)
+    } finally {
+      loading.value = false
     }
 
     clearAuth()
     return false
   }
 
-  const verifyEmail = async (token: string) => {
-    return await accountApiService.verifyEmail(token)
+  const redirectToSpotifyLogin = async (): Promise<void> => {
+    const response = await authApiService.getLoginUrl()
+    if (response.success && response.data?.loginUrl) {
+      window.location.href = response.data.loginUrl
+      return
+    }
+    throw new Error('Unable to start Spotify login')
   }
 
-  const forgotPassword = async (email: string) => {
-    return await accountApiService.forgotPassword(email)
-  }
-
-  const resetPassword = async (resetToken: string, newPassword: string) => {
-    return await accountApiService.resetPassword(resetToken, newPassword)
-  }
-
-  const changePassword = async (oldPassword: string, newPassword: string) => {
-    return await accountApiService.changePassword(oldPassword, newPassword)
-  }
-
-  const refreshSpotifyStatus = async () => {
+  const logout = async (): Promise<void> => {
     try {
-      const response = await accountApiService.getSpotifyLinkStatus()
-      if (response.success) {
-        spotifyLinked.value = response.data?.isLinked ?? false
-        if (user.value && response.data) {
-          user.value = { ...user.value, isSpotifyLinked: response.data.isLinked }
-          localStorage.setItem(USER_KEY, JSON.stringify(user.value))
-        }
-      }
-    } catch {
-      // Ignore errors
+      await authApiService.logout()
+    } catch (error) {
+      console.error('Logout failed', error)
+    } finally {
+      clearAuth()
     }
   }
 
+  const clearAuth = () => {
+    isAuthenticated.value = false
+    spotifyUserId.value = null
+    localStorage.removeItem(SPOTIFY_USER_ID_KEY)
+  }
+
   return {
-    user,
-    spotifyLinked,
     isAuthenticated,
-    isEmailVerified,
-    setAuth,
-    setSpotifyLinked,
-    clearAuth,
-    login,
-    register,
-    logout,
+    isLoggedIn,
+    spotifyUserId,
+    loading,
     checkAuth,
-    verifyEmail,
-    forgotPassword,
-    resetPassword,
-    changePassword,
-    refreshSpotifyStatus,
+    redirectToSpotifyLogin,
+    logout,
+    clearAuth,
   }
 })

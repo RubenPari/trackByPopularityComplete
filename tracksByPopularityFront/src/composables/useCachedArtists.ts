@@ -39,11 +39,11 @@ export function useCachedArtists() {
       logger.info('Fetching artists from API')
       const response = await trackApiService.getLibraryArtists()
 
-      if (response.success && response.data) {
-        return response.data
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch artists')
       }
 
-      throw new Error(response.error || 'Failed to fetch artists')
+      return response.data
     },
     ARTISTS_CACHE_KEY,
     {

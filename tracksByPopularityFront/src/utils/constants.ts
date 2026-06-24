@@ -14,38 +14,22 @@ export const API_ENDPOINTS = {
   },
   PLAYLIST: {
     ALL: '/api/playlist/all',
+    REFRESH: '/api/playlist/refresh',
   },
   AUTH: {
-    STATUS: '/auth/is-auth',
-    LOGIN: '/auth/login',
-    CALLBACK: '/auth/callback',
+    STATUS: '/api/auth/is-auth',
+    LOGIN: '/api/auth/login',
+    CALLBACK: '/api/auth/callback',
+    LOGOUT: '/api/auth/logout',
   },
   HEALTH: {
-    BASE: '/health',
-    DETAILED: '/health/detailed',
+    BASE: '/api/health',
   },
   BACKUP: {
     LIST: '/api/backup/list',
     RESTORE: (snapshotId: string) => `/api/backup/restore/${snapshotId}`,
     DELETE: (snapshotId: string) => `/api/backup/${snapshotId}`,
   },
-  CLEANUP: {
-    DUPLICATES: '/cleanup/duplicates',
-    TRACKS: '/cleanup/tracks',
-  },
-} as const
-
-/**
- * HTTP status codes
- */
-export const HTTP_STATUS = {
-  OK: 200,
-  BAD_REQUEST: 400,
-  UNAUTHORIZED: 401,
-  NOT_FOUND: 404,
-  INTERNAL_SERVER_ERROR: 500,
-  BAD_GATEWAY: 502,
-  SERVICE_UNAVAILABLE: 503,
 } as const
 
 /**
@@ -72,7 +56,6 @@ export const SUCCESS_MESSAGES = {
   TRACKS_ADDED_MORE: 'success.tracksAddedMore',
   ARTIST_TRACKS_ADDED: 'success.artistTracksAdded',
   OPERATION_SUCCESS: 'success.operationSuccess',
-  TRACKS_REMOVED: 'success.tracksRemoved',
 } as const
 
 /**
@@ -89,14 +72,4 @@ export const VALIDATION = {
 export const API_CONFIG = {
   BASE_URL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080',
   TIMEOUT: 30000, // 30 seconds
-  RETRY_ATTEMPTS: 3,
-  RETRY_DELAY: 1000, // 1 second
-} as const
-
-/**
- * UI constants
- */
-export const UI = {
-  NOTIFICATION_DURATION: 5000, // 5 seconds
-  DEBOUNCE_DELAY: 300, // 300ms
 } as const

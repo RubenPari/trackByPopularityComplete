@@ -3,13 +3,14 @@
     class="action-button"
     :class="tierClass"
     :disabled="disabled || loading"
-    @click="$emit('click')"
+    :aria-busy="loading"
+    @click="emit('click')"
   >
     <div class="button-content">
-      <div class="icon" v-if="!loading">
+      <div v-if="!loading" class="icon" aria-hidden="true">
         <slot name="icon"></slot>
       </div>
-      <div class="spinner spinner-large" v-else></div>
+      <div v-else class="spinner spinner-large" aria-hidden="true"></div>
       <div class="text-content">
         <h3 class="title">
           <slot name="title"></slot>
@@ -23,21 +24,29 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import type { PopularityRange } from '@/types/popularity'
+
+/**
+ * A reusable action button component that supports different tiers, loading states, and disabled states.
+ * It uses slots for icon, title, and description to allow flexible content.
+ *
+ * @prop {boolean} [loading=false] - Indicates if the button is in a loading state.
+ * @prop {boolean} [disabled=false] - Indicates if the button is disabled.
+ * @prop {PopularityRange} [tier] - The visual tier of the button for styling.
+ * @emits {click} - Emitted when the button is clicked.
+ */
 const props = defineProps<{
   loading?: boolean
   disabled?: boolean
-  tier?: 'less' | 'less-medium' | 'medium' | 'more-medium' | 'more'
+  tier?: PopularityRange
 }>()
 
-defineEmits<{
+const emit = defineEmits<{
   click: []
 }>()
 
 const tierClass = computed(() => (props.tier ? `tier-${props.tier}` : ''))
-</script>
-
-<script lang="ts">
-import { computed } from 'vue'
 </script>
 
 <style scoped>

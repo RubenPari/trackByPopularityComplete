@@ -62,10 +62,13 @@
     "spotifyUnlinkedSuccess": "Account Spotify scollegato con successo.",
     "spotifyUnlinkFailed": "Scollegamento dell'account Spotify fallito.",
     "confirmUnlinkSpotify": "Sei sicuro di voler scollegare il tuo account Spotify?",
-    "spotifyLoginFailed": "Avvio del login Spotify fallito."
+    "spotifyLoginFailed": "Avvio del login Spotify fallito.",
+    "loginDescription": "Accedi con il tuo account Spotify per organizzare la tua libreria."
   },
   "settings": {
     "title": "Impostazioni",
+    "account": "Account",
+    "spotifyOnlyDescription": "Sei autenticato con Spotify. Usa il pulsante qui sotto per uscire.",
     "email": "Email",
     "emailVerified": "Email Verificata",
     "changePassword": "Cambia Password",

@@ -1,13 +1,20 @@
 /**
  * Base API response structure matching the backend ApiResponse
  */
-export interface ApiResponse<T = unknown> {
-  success: boolean
-  data?: T
+export interface ApiSuccessResponse<T> {
+  success: true
+  data: T
+  message?: string
+}
+
+export interface ApiErrorResponse {
+  success: false
   message?: string
   error?: string
   errorCode?: number
 }
+
+export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
 
 /**
  * Track-related API responses
@@ -28,6 +35,7 @@ export interface PlaylistResponse {
  */
 export interface AuthStatusResponse {
   authenticated: boolean
+  userId?: string
 }
 
 export interface LoginResponse {
@@ -45,21 +53,6 @@ export interface CallbackResponse {
 export interface HealthResponse {
   status: string
   timestamp: string
-}
-
-export interface DetailedHealthResponse {
-  status: string
-  timestamp: string
-  dependencies: {
-    redis: {
-      status: string
-      message: string
-    }
-    spotify: {
-      status: string
-      message: string
-    }
-  }
 }
 
 /**
@@ -92,30 +85,4 @@ export interface PlaylistInfo {
   description?: string
   totalTracks: number
   uri?: string
-}
-
-/**
- * User account information
- */
-export interface User {
-  id: string
-  email: string
-  isEmailVerified: boolean
-  isSpotifyLinked: boolean
-}
-
-/**
- * Account login response
- */
-export interface AccountLoginResponse {
-  token: string
-  user: User
-}
-
-/**
- * Spotify link status
- */
-export interface SpotifyLinkStatus {
-  isLinked: boolean
-  spotifyUserId?: string
 }

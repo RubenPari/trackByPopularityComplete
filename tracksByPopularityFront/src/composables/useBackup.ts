@@ -1,6 +1,9 @@
 import { ref } from 'vue'
 import type { PlaylistSnapshot } from '@/types/api'
 import { backupApiService } from '@/services/backupApi'
+import { createLogger } from '@/utils/logger'
+
+const logger = createLogger('useBackup')
 
 export function useBackup() {
   const snapshots = ref<PlaylistSnapshot[]>([])
@@ -15,6 +18,8 @@ export function useBackup() {
       if (response.success && response.data) {
         snapshots.value = response.data
       }
+    } catch (error) {
+      logger.error('Failed to fetch snapshots', error)
     } finally {
       loadingSnapshots.value = false
     }
@@ -29,6 +34,9 @@ export function useBackup() {
         return true
       }
       return false
+    } catch (error) {
+      logger.error(`Failed to restore snapshot ${snapshotId}`, error)
+      return false
     } finally {
       restoringId.value = null
     }
@@ -42,6 +50,9 @@ export function useBackup() {
         await fetchSnapshots()
         return true
       }
+      return false
+    } catch (error) {
+      logger.error(`Failed to delete snapshot ${snapshotId}`, error)
       return false
     } finally {
       deletingId.value = null

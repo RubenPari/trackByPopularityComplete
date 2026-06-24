@@ -1,24 +1,17 @@
 import type { ApiResponse } from '@/types/api'
 import { apiClient } from './apiClient'
 import { createLogger } from '@/utils/logger'
-import { AxiosError } from 'axios'
+import { AxiosError, type AxiosRequestConfig } from 'axios'
 import { ERROR_MESSAGES } from '@/utils/constants'
 
 const logger = createLogger('HttpClient')
 
-/**
- * Base HTTP client for making API requests
- * Provides typed API calls with error handling and logging using Axios
- */
 export class HttpClient {
-  /**
-   * Makes an HTTP request and returns a typed response
-   */
   async request<T = unknown>(
     endpoint: string,
-    options: { method: string; data?: unknown },
+    options: { method: string; data?: unknown; config?: AxiosRequestConfig },
   ): Promise<ApiResponse<T>> {
-    const { method, data } = options
+    const { method, data, config } = options
     logger.debug(`Making ${method} request to ${endpoint}`, { options })
 
     try {
@@ -26,12 +19,12 @@ export class HttpClient {
         url: endpoint,
         method,
         data,
+        ...config,
       })
 
       const responseData = response.data
       logger.debug(`Request successful: ${method} ${endpoint}`, { data: responseData })
 
-      // Our backend now wraps everything in an ApiResponse wrapper
       if (responseData.success) {
         return {
           success: true,
@@ -67,32 +60,28 @@ export class HttpClient {
     }
   }
 
-  /**
-   * Makes a GET request
-   */
-  async get<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' })
+  async get<T = unknown>(endpoint: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'GET', config })
   }
 
-  /**
-   * Makes a POST request
-   */
-  async post<T = unknown>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'POST', data })
+  async post<T = unknown>(
+    endpoint: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'POST', data, config })
   }
 
-  /**
-   * Makes a PUT request
-   */
-  async put<T = unknown>(endpoint: string, data?: unknown): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'PUT', data })
+  async put<T = unknown>(
+    endpoint: string,
+    data?: unknown,
+    config?: AxiosRequestConfig,
+  ): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'PUT', data, config })
   }
 
-  /**
-   * Makes a DELETE request
-   */
-  async delete<T = unknown>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'DELETE' })
+  async delete<T = unknown>(endpoint: string, config?: AxiosRequestConfig): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: 'DELETE', config })
   }
 }
 

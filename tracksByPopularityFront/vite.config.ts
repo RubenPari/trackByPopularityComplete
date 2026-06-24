@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
     host: '0.0.0.0',
     port: 5173,
     proxy: Object.fromEntries(
-      ['/api', '/track', '/playlist', '/auth', '/health'].map((path) => [
+      ['/api', '/auth', '/health'].map((path) => [
         path,
         {
           target: apiTarget,

@@ -38,11 +38,11 @@ export function usePlaylistsWithCache() {
       logger.info('Fetching playlists from API')
       const response = await playlistApiService.getAllPlaylists()
 
-      if (response.success && response.data) {
-        return response.data
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to fetch playlists')
       }
 
-      throw new Error(response.error || 'Failed to fetch playlists')
+      return response.data
     },
     'playlists-cache',
     {
