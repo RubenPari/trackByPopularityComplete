@@ -1,8 +1,8 @@
 <template>
   <Transition name="slide-down">
-    <div v-if="message" :class="['notification', type]">
+    <div v-if="message" :class="['notification', type]" role="alert" aria-live="polite">
       <div class="notification-content">
-        <span class="icon">{{ type === 'success' ? '✓' : '✕' }}</span>
+        <span class="icon" aria-hidden="true">{{ type === 'success' ? '✓' : '✕' }}</span>
         <p class="message">{{ message }}</p>
         <button class="close-button" @click="$emit('close')" :aria-label="t('common.close')">
           ×

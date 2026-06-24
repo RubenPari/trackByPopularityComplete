@@ -1,5 +1,10 @@
 <template>
-  <button class="language-switcher" @click="toggleLocale" :title="t('language.switchLabel')">
+    <button
+      class="language-switcher"
+      type="button"
+      :aria-label="t('language.switchLabel')"
+      @click="toggleLocale"
+    >
     {{ locale === 'it' ? '🇬🇧 EN' : '🇮🇹 IT' }}
   </button>
 </template>

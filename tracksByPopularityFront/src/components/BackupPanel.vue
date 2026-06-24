@@ -41,7 +41,7 @@
             </div>
             <div class="snapshot-actions">
               <button
-                class="restore-button"
+                class="btn btn-primary restore-button"
                 :disabled="restoringId !== null || deletingId !== null"
                 @click="handleRestore(snapshot)"
               >
@@ -49,7 +49,7 @@
                 <span v-else>{{ t('backup.restore') }}</span>
               </button>
               <button
-                class="delete-button"
+                class="btn btn-secondary btn-icon delete-button"
                 :disabled="restoringId !== null || deletingId !== null"
                 @click="handleDelete(snapshot)"
                 :title="t('backup.delete')"
@@ -63,26 +63,26 @@
       </div>
     </Transition>
 
-    <div v-if="showConfirm" class="confirm-overlay" @click.self="showConfirm = false">
-      <div class="confirm-dialog">
+    <div v-if="showConfirm" class="modal-overlay" @click.self="showConfirm = false">
+      <div class="modal-dialog">
         <p>{{ t('backup.restoreConfirm', { name: confirmSnapshot?.playlistName }) }}</p>
-        <div class="confirm-actions">
-          <button class="confirm-cancel" @click="showConfirm = false">
+        <div class="modal-actions">
+          <button class="btn btn-secondary confirm-cancel" @click="showConfirm = false">
             {{ t('common.close') }}
           </button>
-          <button class="confirm-restore" @click="confirmRestore">{{ t('backup.restore') }}</button>
+          <button class="btn btn-primary confirm-restore" @click="confirmRestore">{{ t('backup.restore') }}</button>
         </div>
       </div>
     </div>
 
-    <div v-if="showDeleteConfirm" class="confirm-overlay" @click.self="showDeleteConfirm = false">
-      <div class="confirm-dialog">
+    <div v-if="showDeleteConfirm" class="modal-overlay" @click.self="showDeleteConfirm = false">
+      <div class="modal-dialog">
         <p>{{ t('backup.deleteConfirm', { name: snapshotToDelete?.playlistName }) }}</p>
-        <div class="confirm-actions">
-          <button class="confirm-cancel" @click="showDeleteConfirm = false">
+        <div class="modal-actions">
+          <button class="btn btn-secondary confirm-cancel" @click="showDeleteConfirm = false">
             {{ t('common.close') }}
           </button>
-          <button class="confirm-delete" @click="confirmDelete">{{ t('backup.delete') }}</button>
+          <button class="btn btn-danger confirm-delete" @click="confirmDelete">{{ t('backup.delete') }}</button>
         </div>
       </div>
     </div>
@@ -107,6 +107,9 @@ const {
   restoreSnapshot,
   deleteSnapshot,
 } = useBackup()
+
+const OPERATION_RESTORE = 'restoreSnapshot'
+const OPERATION_DELETE = 'deleteSnapshot'
 
 const isOpen = ref(false)
 const showConfirm = ref(false)
@@ -133,9 +136,9 @@ const confirmRestore = async () => {
   showConfirm.value = false
   const success = await restoreSnapshot(confirmSnapshot.value.id)
   if (success) {
-    apiStore.success = t('backup.restoreSuccess')
+    apiStore.successes[OPERATION_RESTORE] = t('backup.restoreSuccess')
   } else {
-    apiStore.error = t('errors.genericError')
+    apiStore.errors[OPERATION_RESTORE] = t('errors.genericError')
   }
   confirmSnapshot.value = null
 }
@@ -150,9 +153,9 @@ const confirmDelete = async () => {
   showDeleteConfirm.value = false
   const success = await deleteSnapshot(snapshotToDelete.value.id)
   if (success) {
-    apiStore.success = t('backup.deleteSuccess')
+    apiStore.successes[OPERATION_DELETE] = t('backup.deleteSuccess')
   } else {
-    apiStore.error = t('errors.genericError')
+    apiStore.errors[OPERATION_DELETE] = t('errors.genericError')
   }
   snapshotToDelete.value = null
 }
@@ -177,10 +180,6 @@ const confirmDelete = async () => {
 }
 
 .section-title {
-  font-size: 1.5rem;
-  font-weight: 700;
-  margin: 0;
-  color: var(--color-text);
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -270,121 +269,13 @@ const confirmDelete = async () => {
 }
 
 .restore-button {
-  padding: 0.5rem 1rem;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
   min-width: 90px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.restore-button:hover:not(:disabled) {
-  background: var(--color-primary-hover);
-}
-
-.restore-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.delete-button {
-  padding: 0.5rem;
-  background: transparent;
-  color: var(--color-text-secondary);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 36px;
-  min-height: 36px;
 }
 
 .delete-button:hover:not(:disabled) {
   background: rgba(239, 68, 68, 0.1);
-  border-color: #ef4444;
-  color: #ef4444;
-}
-
-.delete-button:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-.confirm-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.confirm-dialog {
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 12px;
-  padding: 1.5rem;
-  max-width: 400px;
-  width: 90%;
-}
-
-.confirm-dialog p {
-  margin: 0 0 1.5rem;
-  color: var(--color-text);
-  line-height: 1.5;
-}
-
-.confirm-actions {
-  display: flex;
-  gap: 0.75rem;
-  justify-content: flex-end;
-}
-
-.confirm-cancel {
-  padding: 0.5rem 1rem;
-  background: var(--color-background-soft);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  color: var(--color-text);
-  cursor: pointer;
-  font-weight: 500;
-}
-
-.confirm-restore {
-  padding: 0.5rem 1rem;
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.confirm-delete {
-  padding: 0.5rem 1rem;
-  background: #ef4444;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
-}
-
-.confirm-delete:hover {
-  background: #dc2626;
+  border-color: var(--color-error);
+  color: var(--color-error);
 }
 
 .collapse-enter-active,

@@ -23,19 +23,78 @@
     </main>
 
     <NotificationBanner
-      v-if="apiStore.success"
-      :message="apiStore.success"
+      v-if="apiStore.getSuccess(GLOBAL_OPERATION_KEY)"
+      :message="apiStore.getSuccess(GLOBAL_OPERATION_KEY)"
       type="success"
-      @close="apiStore.clearMessages"
+      @close="apiStore.clearOperation(GLOBAL_OPERATION_KEY)"
     />
     <NotificationBanner
-      v-if="apiStore.error"
-      :message="apiStore.error"
+      v-if="apiStore.getError(GLOBAL_OPERATION_KEY)"
+      :message="apiStore.getError(GLOBAL_OPERATION_KEY)"
       type="error"
-      @close="apiStore.clearMessages"
+      @close="apiStore.clearOperation(GLOBAL_OPERATION_KEY)"
     />
   </div>
 </template>
+
+<style scoped>
+.home-view {
+  min-height: 100vh;
+  padding: 2rem 1rem;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--color-text-secondary);
+}
+
+.main-content {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .home-view {
+    padding: 1rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+}
+</style>
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
@@ -49,78 +108,6 @@ import PopularityPlaylists from '@/components/PopularityPlaylists.vue'
 
 const { t } = useI18n()
 const apiStore = useApiStore()
+
+const GLOBAL_OPERATION_KEY = 'global'
 </script>
-
-<style scoped>
-.home-view {
-  min-height: 100vh;
-  padding: 2rem 1rem;
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.header {
-  text-align: center;
-  margin-bottom: 3rem;
-}
-
-.header-top {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
-  position: relative;
-}
-
-.header-top .title {
-  margin: 0;
-}
-
-.header-top :deep(.language-switcher) {
-  position: absolute;
-  right: 0;
-}
-
-.title {
-  font-size: 3rem;
-  font-weight: 800;
-  margin: 0 0 0.5rem 0;
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #a855f7 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  text-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
-}
-
-.subtitle {
-  font-size: 1.125rem;
-  color: var(--color-text-secondary);
-  margin: 0;
-}
-
-.main-content {
-  display: flex;
-  flex-direction: column;
-  gap: 3rem;
-}
-
-.divider {
-  height: 1px;
-  background: var(--color-border);
-  margin: 1rem 0;
-}
-
-@media (max-width: 768px) {
-  .title {
-    font-size: 2rem;
-  }
-
-  .subtitle {
-    font-size: 1rem;
-  }
-
-  .home-view {
-    padding: 1rem 0.5rem;
-  }
-}
-</style>

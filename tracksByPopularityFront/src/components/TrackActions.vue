@@ -5,7 +5,7 @@
       {{ t('tracks.sectionDescription') }}
     </p>
 
-    <div class="actions-grid">
+    <div class="grid grid-auto">
       <ActionButton
         v-for="config in popularityConfigs"
         :key="config.id"
@@ -25,26 +25,24 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useTrackActions } from '@/composables/useTrackActions'
 import { SUCCESS_MESSAGES } from '@/utils/constants'
+import type { PopularityRange } from '@/types/popularity'
 import ActionButton from './ActionButton.vue'
 
 const { t } = useI18n()
 const { addTracksByPopularity, loading } = useTrackActions()
 
-type PopularityCategoryId = 'less' | 'less-medium' | 'medium' | 'more-medium' | 'more'
-
 interface PopularityConfig {
-  id: PopularityCategoryId
+  id: PopularityRange
   icon: string
   title: string
   description: string
   successMessageKey: string
 }
 
-const popularityConfigs = computed<PopularityConfig[]>(() => [
+const popularityConfigs: PopularityConfig[] = [
   {
     id: 'less',
     icon: '📉',
@@ -80,10 +78,10 @@ const popularityConfigs = computed<PopularityConfig[]>(() => [
     description: t('tracks.popularity.more.description'),
     successMessageKey: SUCCESS_MESSAGES.TRACKS_ADDED_MORE,
   },
-])
+]
 
-const handleAddTracks = async (id: PopularityCategoryId) => {
-  const config = popularityConfigs.value.find((c) => c.id === id)
+const handleAddTracks = async (id: PopularityRange) => {
+  const config = popularityConfigs.find((c) => c.id === id)
   if (!config) return
 
   await addTracksByPopularity(id, config.successMessageKey)
@@ -93,31 +91,6 @@ const handleAddTracks = async (id: PopularityCategoryId) => {
 <style scoped>
 .track-actions {
   width: 100%;
-}
-
-.section-title {
-  font-size: 2rem;
-  font-weight: 700;
-  margin-bottom: 0.5rem;
-  color: var(--color-text);
-}
-
-.section-description {
-  font-size: 1rem;
-  color: var(--color-text-secondary);
-  margin-bottom: 2rem;
-}
-
-.actions-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 1.5rem;
-}
-
-@media (max-width: 768px) {
-  .actions-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 .tier-label {
