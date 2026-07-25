@@ -25,7 +25,7 @@ public static class InfrastructureServiceCollectionExtensions
     {
         // MySQL database context
         services.AddDbContext<AppDbContext>(options =>
-            options.UseMySql(connectionString, new MariaDbServerVersion(new Version(11, 0))));
+            options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
         services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
 
         // Spotify auth

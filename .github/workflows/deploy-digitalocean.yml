@@ -1,0 +1,80 @@
+name: Deploy to DigitalOcean
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: digitalocean-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20.19.0
+          cache: npm
+          cache-dependency-path: tracksByPopularityFront/package-lock.json
+
+      - name: Test backend
+        run: dotnet test tracksByPopularity/tracksByPopularity.sln
+
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: tracksByPopularityFront
+
+      - name: Build frontend
+        run: npm run build
+        working-directory: tracksByPopularityFront
+        env:
+          VITE_API_BASE_URL: same-origin
+
+  deploy:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Verify Spotify secrets
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+        run: |
+          test -n "$SPOTIFY_CLIENT_ID"
+          test -n "$SPOTIFY_CLIENT_SECRET"
+
+      - name: Validate App Platform specification
+        run: doctl apps spec validate .do/app.yaml --schema-only
+
+      - name: Deploy App Platform application
+        uses: digitalocean/app_action/deploy@v2.0.11
+        env:
+          SPOTIFY_CLIENT_ID: ${{ secrets.SPOTIFY_CLIENT_ID }}
+          SPOTIFY_CLIENT_SECRET: ${{ secrets.SPOTIFY_CLIENT_SECRET }}
+        with:
+          app_spec_location: .do/app.yaml
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          print_build_logs: false
+          print_deploy_logs: false

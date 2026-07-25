@@ -5,7 +5,7 @@ namespace tracksByPopularity.Presentation.Controllers;
 /// </summary>
 internal static class SpotifyRedirectUriHelper
 {
-    private const string AuthCallbackPath = "/auth/callback";
+    private const string AuthCallbackPath = "/api/auth/callback";
     private const string LinkCallbackPath = "/api/spotify/callback";
 
     /// <summary>

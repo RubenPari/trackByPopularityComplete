@@ -30,7 +30,7 @@ services:
       - MIGRATE_ON_STARTUP=true
       - CLIENT_ID=${CLIENT_ID}
       - CLIENT_SECRET=${CLIENT_SECRET}
-      - REDIRECT_URI=${REDIRECT_URI:-http://localhost:8080/auth/callback}
+      - REDIRECT_URI=${REDIRECT_URI:-http://localhost:8080}
       - DATABASE_CONNECTION_STRING=Server=mysql;Port=3306;Database=tracksbypopularity;User=root;Password=password;
       - REDIS_HOST=redis
       - REDIS_PORT=6379

@@ -1,0 +1,13 @@
+.env
+.env.*
+bin/
+**/bin/
+obj/
+**/obj/
+tests/
+logs/
+.git/
+.idea/
+.vscode/
+*.user
+*.suo

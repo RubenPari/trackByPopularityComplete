@@ -3,6 +3,8 @@
  * Centralizes access to environment variables with type safety and defaults
  */
 
+const configuredApiBaseUrl = import.meta.env.VITE_API_BASE_URL
+
 /**
  * Application environment
  */
@@ -10,7 +12,10 @@ export const ENV = {
   /**
    * API base URL from environment variable or default
    */
-  API_BASE_URL: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8080',
+  API_BASE_URL:
+    configuredApiBaseUrl === 'same-origin'
+      ? ''
+      : (configuredApiBaseUrl ?? 'http://localhost:8080'),
 
   /**
    * Whether the application is running in development mode

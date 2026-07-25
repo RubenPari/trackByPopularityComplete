@@ -1,323 +1,375 @@
 ## Tracks by Popularity (Spotify Playlist Manager)
 
-An app to organize your Spotify library into playlists automatically:
+Tracks by Popularity organizes a Spotify library into playlists by track popularity, artist, and saved-library state. The repository contains:
 
-- **by popularity ranges** (`less` / `less-medium` / `medium` / `more-medium` / `more`)
-- **by artist** (artist-specific playlists split by popularity tiers)
-- **(optional/extensible)** by audio features / mood and “minor artist” detection
+- `tracksByPopularity/`: ASP.NET Core 10 backend using Clean Architecture;
+- `tracksByPopularityFront/`: Vue 3, TypeScript, and Vite frontend;
+- MariaDB/MySQL for application data;
+- Redis/Valkey for Spotify tokens and cache data.
 
-This repo contains **two projects**:
+## Requirements
 
-- `tracksByPopularity/`: **ASP.NET Core Web API** (.NET 10)
-- `tracksByPopularityFront/`: **Vue 3 + TypeScript** (Vite)
+- Spotify Developer application with Client ID and Client Secret
+- .NET SDK 10
+- Node.js `20.19.0` or `>=22.12.0`
+- Docker for the complete local stack
+- For production: DigitalOcean, GitHub CLI, and `doctl`
 
-## Architecture (backend)
+## Local configuration
 
-The backend follows Clean Architecture:
-
-- `src/Domain/`: entities/value objects/domain rules
-- `src/Application/`: DTOs, application services, interfaces, validation, mapping
-- `src/Infrastructure/`: external integrations (Spotify, Redis, logging, etc.)
-- `src/Presentation/`: controllers, middleware, filters
-
-## Prerequisites
-
-- **Spotify Developer App** (Client ID/Secret and Redirect URI configured)
-- **.NET SDK 10**
-- **Node.js**: `^20.19.0` or `>=22.12.0` (see `tracksByPopularityFront/package.json`)
-- **Docker** (optional, for a full stack start with DB/Redis)
-
-## Backend `.env` configuration
-
-Copy the template from the repo root:
+Copy the root environment template and provide Spotify credentials:
 
 ```bash
 cp .env.example .env
 ```
 
-Main variables (see `.env.example`):
+`REDIRECT_URI` is the backend origin, not a callback path. The backend appends `/api/auth/callback`. `FRONTEND_ORIGIN` is the browser origin used after OAuth succeeds.
 
-- **Spotify OAuth**
-  - `CLIENT_ID`
-  - `CLIENT_SECRET`
-  - `REDIRECT_URI` (e.g. `http://127.0.0.1:8080/auth/callback`)
-- **Database**
-  - `DATABASE_CONNECTION_STRING`
-- **Redis**
-  - `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_USE_SSL`
-- **Frontend/Client**
-  - `CLIENT_URL` (typically `http://localhost:5173`)
-
-Note: if you run Docker Compose, some values are provided/overridden by `docker-compose.yml` (e.g. mysql/redis hosts).
-
-## Frontend configuration
-
-Copy the template:
+For the frontend:
 
 ```bash
-cp tracksByPopularityFront/.env.example tracksByPopularityFront/.env
+cp tracksByPopularityFront/.env.example tracksByPopularityFront/.env.local
 ```
 
-Variable:
+An empty `VITE_API_BASE_URL` uses the Vite development proxy. DigitalOcean supplies the build-time literal `same-origin`, which the frontend converts to an empty browser base URL.
 
-- `VITE_API_BASE_URL` (default `http://localhost:8080`)
+## Local development
 
-## Quick start (Docker Compose)
-
-Start **MariaDB** + **Redis** + **Backend** + **Frontend**:
+Docker Compose is for local development only. It starts MariaDB, Redis, the backend, and the nginx-hosted frontend:
 
 ```bash
+CLIENT_ID=your-client-id \
+CLIENT_SECRET=your-client-secret \
+REDIRECT_URI=http://localhost:8080 \
+FRONTEND_ORIGIN=http://localhost \
 docker compose up --build
 ```
 
-Default ports:
+Local URLs:
 
-- **Frontend**: `http://localhost/` (port 80)
-- **Backend API**: `http://localhost:8080/`
-- **Redis**: `localhost:6379`
-- **MariaDB**: `localhost:3306`
+- frontend: `http://localhost`
+- backend: `http://localhost:8080`
+- health: `http://localhost:8080/api/health`
 
-## Local development (recommended)
-
-### Backend
+To run each application directly:
 
 ```bash
 cd tracksByPopularity
-dotnet build
 dotnet run
 ```
 
-Backend runs on `http://localhost:8080`.
-
-### Frontend
-
 ```bash
 cd tracksByPopularityFront
-npm install
+npm ci
 npm run dev
 ```
 
-Frontend runs on `http://localhost:5173` (Vite proxies `/api`, `/auth`, `/track`, `/playlist`, `/health` to the backend).
+Vite serves the frontend at `http://localhost:5173` and proxies API requests to the backend.
 
-## Spotify authentication flow
+## Spotify authentication and API routes
 
-- Start backend + frontend
-- From the frontend (or directly), call `GET /auth/login` and read `loginUrl`
-- Complete Spotify login
-- Callback hits `GET /auth/callback`
-- Backend stores tokens in Redis and sets a `spotify_user_id` HttpOnly cookie
-- Check session via `GET /auth/is-auth`
+1. Request `GET /api/auth/login` and open the returned `loginUrl`.
+2. Spotify redirects to `GET /api/auth/callback`.
+3. The backend stores the Spotify token in Redis/Valkey, sets the `spotify_user_id` HttpOnly cookie, and redirects to the SPA route `/auth/callback`.
+4. Check the session with `GET /api/auth/is-auth`; sign out with `POST /api/auth/logout`.
 
-## Main API endpoints
+Primary routes:
 
-Backend base URL: `http://localhost:8080`
+- `GET /api/health`
+- `GET /api/auth/login`
+- `GET /api/auth/callback`
+- `GET /api/auth/is-auth`
+- `POST /api/auth/logout`
+- `GET /api/playlist/all`
+- `POST /api/playlist/refresh`
+- `POST /api/track/popularity/{range}`
+- `GET /api/track/artists`
+- `POST /api/track/artist?artistId=...`
 
-### Health
+## DigitalOcean production deployment
 
-- `GET /health`
+`.do/app.yaml` declares a same-origin App Platform deployment in `fra`:
 
-### Auth
+- one ASP.NET Core backend instance on port 8080;
+- one static Vue/Vite site;
+- an existing DigitalOcean Managed MySQL cluster;
+- an existing DigitalOcean Managed Valkey cluster;
+- `/api` ingress to the backend, then `/` to the static frontend;
+- `${APP_URL}` for OAuth and frontend redirects, including a future primary custom domain.
 
-- `GET /auth/login`
-- `GET /auth/callback`
-- `GET /auth/is-auth`
-- `POST /auth/logout`
+The workflow `.github/workflows/deploy-digitalocean.yml` is the only deployment driver. It runs backend tests and a production frontend build before updating the app. Do not enable App Platform deploy-on-push separately.
 
-### Playlist
+### First deployment — required order
 
-- `GET /api/playlist/all` (requires Spotify auth)
-- `POST /api/playlist/refresh` (requires Spotify auth)
+1. Authenticate `doctl`, then verify currently available versions and sizes before provisioning:
 
-### Track
+   ```bash
+   doctl auth init
+   doctl databases options versions --engine mysql
+   doctl databases options versions --engine valkey
+   doctl databases options slugs --engine mysql
+   doctl databases options slugs --engine valkey
+   ```
 
-- `POST /api/track/popularity/{range}` (requires Spotify auth)  
-  `range` ∈ `less` | `less-medium` | `medium` | `more-medium` | `more`
-- `GET /api/track/artists` (requires Spotify auth)
-- `POST /api/track/artist?artistId=...` (requires Spotify auth)
+2. Create both managed clusters in `fra1`, one 1 GiB node each. If the account does not offer both engines and sizes in `fra1`, use `ams` for the app and `ams3` for both databases; never split the resources between regions.
 
-## Testing & quality
+   ```bash
+   doctl databases create tracks-popularity-mysql \
+     --engine mysql --version 8.4 --region fra1 \
+     --size db-s-1vcpu-1gb --num-nodes 1 --wait
 
-### Frontend
+   doctl databases create tracks-popularity-valkey \
+     --engine valkey --version 8 --region fra1 \
+     --size db-s-1vcpu-1gb --num-nodes 1 --wait
+   ```
+
+3. Create the application database and retain the managed `doadmin` user:
+
+   ```bash
+   MYSQL_CLUSTER_ID=$(doctl databases list --format ID,Name --no-header | awk '$2 == "tracks-popularity-mysql" { print $1 }')
+   test -n "$MYSQL_CLUSTER_ID"
+   doctl databases db create "$MYSQL_CLUSTER_ID" tracksbypopularity
+   ```
+
+4. Create GitHub repository secrets interactively. Never put their values in source files:
+
+   ```bash
+   gh secret set DIGITALOCEAN_ACCESS_TOKEN
+   gh secret set SPOTIFY_CLIENT_ID
+   gh secret set SPOTIFY_CLIENT_SECRET
+   ```
+
+5. Start the first deployment and wait for both `verify` and `deploy` jobs:
+
+   ```bash
+   gh workflow run deploy-digitalocean.yml --ref main
+   gh run watch
+   ```
+
+   The workflow creates or updates the `tracks-popularity` app and links the clusters named `tracks-popularity-mysql` and `tracks-popularity-valkey`.
+
+6. Read the generated `https://*.ondigitalocean.app` URL in App Platform. In the Spotify Developer Dashboard, register this exact callback:
+
+   ```text
+   ${APP_URL}/api/auth/callback
+   ```
+
+   If the primary origin changed, rerun `deploy-digitalocean.yml` so `${APP_URL}` is rebound throughout the deployment.
+
+7. Verify the deployed application:
+
+   ```bash
+   curl -fsS "${APP_URL}/api/health"
+   curl -fsS "${APP_URL}/api/auth/login"
+   curl -fsS "${APP_URL}/auth/callback"
+   ```
+
+   Health must return `Healthy`. URL-decode `loginUrl` and confirm its `redirect_uri` is exactly `${APP_URL}/api/auth/callback`. The direct SPA callback route must return the frontend rather than 404. Complete a real Spotify login, then confirm the `spotify_user_id` cookie is `HttpOnly`, `Secure`, and `SameSite=Lax`, and that `GET ${APP_URL}/api/auth/is-auth` returns `authenticated: true` in the same session.
+
+### Custom domain
+
+Set the custom domain as primary in App Platform, update the Spotify callback to the new `${APP_URL}/api/auth/callback`, then redeploy. `FRONTEND_ORIGIN` and `REDIRECT_URI` follow `${APP_URL}`; no host is baked into the code.
+
+### Rollback
+
+Open the app's **Deployments** page in DigitalOcean App Platform and redeploy a known-good deployment. Database deletion is not a rollback: the managed MySQL and Valkey clusters must remain attached and preserve application state.
+
+## Verification commands
 
 ```bash
+dotnet test tracksByPopularity/tracksByPopularity.sln
+docker build -f tracksByPopularity/Dockerfile -t tracks-popularity-backend tracksByPopularity
 cd tracksByPopularityFront
-npm run lint
-npm run type-check
-npm run test:unit
+npm ci
+VITE_API_BASE_URL=same-origin npm run build
+npm run test:unit -- --run src/__tests__/env.spec.ts
 ```
-
-### Backend
-
-```bash
-cd tracksByPopularity
-dotnet test
-```
-
-## Useful notes
-
-- **Secrets**: don’t commit `.env`. Use `.env.example` as a template.
-- **Redis**: used for caching (Spotify tokens + data to reduce Spotify API calls).
-- **DB**: `docker-compose.yml` includes MariaDB; in local dev you can run it via Docker.
 
 ---
 
 ## Tracks by Popularity (Spotify Playlist Manager) — Italiano
 
-App per gestire e organizzare la tua libreria Spotify in playlist automaticamente:
+Tracks by Popularity organizza la libreria Spotify in playlist in base a popolarità, artista e stato dei brani salvati. Il repository contiene:
 
-- **per fasce di popolarità** (`less` / `less-medium` / `medium` / `more-medium` / `more`)
-- **per artista** (playlist dedicate per artista con tier di popolarità)
-- **(opzionale/estendibile)** per audio features / mood e rilevamento “minor artist”
+- `tracksByPopularity/`: backend ASP.NET Core 10 con Clean Architecture;
+- `tracksByPopularityFront/`: frontend Vue 3, TypeScript e Vite;
+- MariaDB/MySQL per i dati applicativi;
+- Redis/Valkey per token Spotify e cache.
 
-Il repo contiene **due progetti**:
+## Requisiti
 
-- `tracksByPopularity/`: **ASP.NET Core Web API** (.NET 10)
-- `tracksByPopularityFront/`: **Vue 3 + TypeScript** (Vite)
+- Applicazione Spotify Developer con Client ID e Client Secret
+- .NET SDK 10
+- Node.js `20.19.0` oppure `>=22.12.0`
+- Docker per lo stack locale completo
+- Per la produzione: DigitalOcean, GitHub CLI e `doctl`
 
-## Architettura (backend)
+## Configurazione locale
 
-Il backend segue una struttura “Clean Architecture”:
-
-- `src/Domain/`: entità/valori/regole di dominio
-- `src/Application/`: DTO, servizi applicativi, interfacce, validazione, mapping
-- `src/Infrastructure/`: integrazioni esterne (Spotify, Redis, logging, ecc.)
-- `src/Presentation/`: controller, middleware, filtri
-
-## Prerequisiti
-
-- **Spotify Developer App** (Client ID/Secret e Redirect URI configurati)
-- **.NET SDK 10**
-- **Node.js**: `^20.19.0` oppure `>=22.12.0` (vedi `tracksByPopularityFront/package.json`)
-- **Docker** (opzionale, per avvio “all-in-one” con DB/Redis)
-
-## Configurazione `.env` (backend)
-
-Nel root del repo trovi un esempio:
+Copia il template delle variabili root e inserisci le credenziali Spotify:
 
 ```bash
 cp .env.example .env
 ```
 
-Variabili principali (vedi `.env.example`):
+`REDIRECT_URI` è l'origin del backend, non il percorso callback. Il backend aggiunge `/api/auth/callback`. `FRONTEND_ORIGIN` è l'origin browser usato al termine dell'OAuth.
 
-- **Spotify OAuth**
-  - `CLIENT_ID`
-  - `CLIENT_SECRET`
-  - `REDIRECT_URI` (es. `http://127.0.0.1:8080/auth/callback`)
-- **Database**
-  - `DATABASE_CONNECTION_STRING`
-- **Redis**
-  - `REDIS_HOST`, `REDIS_PORT`, `REDIS_PASSWORD`, `REDIS_USE_SSL`
-- **Frontend/Client**
-  - `CLIENT_URL` (tipicamente `http://localhost:5173`)
-
-Nota: se usi Docker Compose, alcune variabili vengono sovrascritte/fornite dal compose (es. host redis/mysql).
-
-## Configurazione frontend
-
-Nel frontend trovi un esempio:
+Per il frontend:
 
 ```bash
-cp tracksByPopularityFront/.env.example tracksByPopularityFront/.env
+cp tracksByPopularityFront/.env.example tracksByPopularityFront/.env.local
 ```
 
-Variabile:
+Un `VITE_API_BASE_URL` vuoto usa il proxy di sviluppo Vite. DigitalOcean passa il literal build-time `same-origin`, convertito dal frontend in una base browser vuota.
 
-- `VITE_API_BASE_URL` (default `http://localhost:8080`)
+## Sviluppo locale
 
-## Avvio rapido (Docker Compose)
-
-Avvia **DB (MariaDB)** + **Redis** + **Backend** + **Frontend**:
+Docker Compose serve solo per lo sviluppo locale. Avvia MariaDB, Redis, backend e frontend nginx:
 
 ```bash
+CLIENT_ID=your-client-id \
+CLIENT_SECRET=your-client-secret \
+REDIRECT_URI=http://localhost:8080 \
+FRONTEND_ORIGIN=http://localhost \
 docker compose up --build
 ```
 
-Servizi/porte (default):
+URL locali:
 
-- **Frontend**: `http://localhost/` (porta 80)
-- **Backend API**: `http://localhost:8080/`
-- **Redis**: `localhost:6379`
-- **MariaDB**: `localhost:3306`
+- frontend: `http://localhost`
+- backend: `http://localhost:8080`
+- health: `http://localhost:8080/api/health`
 
-## Sviluppo locale (consigliato)
-
-### Backend
+Per avviare separatamente le applicazioni:
 
 ```bash
 cd tracksByPopularity
-dotnet build
 dotnet run
 ```
 
-Backend su `http://localhost:8080`.
-
-### Frontend
-
 ```bash
 cd tracksByPopularityFront
-npm install
+npm ci
 npm run dev
 ```
 
-Frontend su `http://localhost:5173` (Vite fa proxy verso il backend per `/api`, `/auth`, `/track`, `/playlist`, `/health`).
+Vite espone il frontend su `http://localhost:5173` e inoltra le richieste API al backend.
 
-## Autenticazione Spotify (flow)
+## Autenticazione Spotify e route API
 
-- Avvia backend+frontend
-- Dal frontend (o direttamente) chiama `GET /auth/login` e leggi `loginUrl`
-- Completa login su Spotify
-- Callback su `GET /auth/callback`
-- Il backend salva token in Redis e imposta un cookie `spotify_user_id` (HttpOnly)
-- Verifica sessione con `GET /auth/is-auth`
+1. Richiedi `GET /api/auth/login` e apri il `loginUrl` restituito.
+2. Spotify reindirizza a `GET /api/auth/callback`.
+3. Il backend salva il token Spotify in Redis/Valkey, imposta il cookie HttpOnly `spotify_user_id` e reindirizza alla route SPA `/auth/callback`.
+4. Verifica la sessione con `GET /api/auth/is-auth`; esegui il logout con `POST /api/auth/logout`.
 
-## Endpoint API principali
+Route principali:
 
-Backend base URL: `http://localhost:8080`
+- `GET /api/health`
+- `GET /api/auth/login`
+- `GET /api/auth/callback`
+- `GET /api/auth/is-auth`
+- `POST /api/auth/logout`
+- `GET /api/playlist/all`
+- `POST /api/playlist/refresh`
+- `POST /api/track/popularity/{range}`
+- `GET /api/track/artists`
+- `POST /api/track/artist?artistId=...`
 
-### Health
+## Deploy production su DigitalOcean
 
-- `GET /health`
+`.do/app.yaml` dichiara un deploy same-origin App Platform in `fra`:
 
-### Auth
+- una sola istanza backend ASP.NET Core sulla porta 8080;
+- un sito statico Vue/Vite;
+- un cluster DigitalOcean Managed MySQL esistente;
+- un cluster DigitalOcean Managed Valkey esistente;
+- ingress `/api` verso il backend e poi `/` verso il frontend statico;
+- `${APP_URL}` per OAuth e redirect frontend, incluso un futuro dominio custom primario.
 
-- `GET /auth/login`
-- `GET /auth/callback`
-- `GET /auth/is-auth`
-- `POST /auth/logout`
+Il workflow `.github/workflows/deploy-digitalocean.yml` è l'unico driver di deploy. Esegue test backend e build frontend production prima di aggiornare l'app. Non abilitare separatamente il deploy-on-push di App Platform.
 
-### Playlist
+### Primo deploy — ordine obbligatorio
 
-- `GET /api/playlist/all` (richiede auth Spotify)
-- `POST /api/playlist/refresh` (richiede auth Spotify)
+1. Autentica `doctl`, poi verifica versioni e size correnti prima del provisioning:
 
-### Track
+   ```bash
+   doctl auth init
+   doctl databases options versions --engine mysql
+   doctl databases options versions --engine valkey
+   doctl databases options slugs --engine mysql
+   doctl databases options slugs --engine valkey
+   ```
 
-- `POST /api/track/popularity/{range}` (richiede auth Spotify)  
-  `range` ∈ `less` | `less-medium` | `medium` | `more-medium` | `more`
-- `GET /api/track/artists` (richiede auth Spotify)
-- `POST /api/track/artist?artistId=...` (richiede auth Spotify)
+2. Crea entrambi i cluster gestiti in `fra1`, con un nodo da 1 GiB. Se l'account non offre entrambi gli engine e le size in `fra1`, usa `ams` per l'app e `ams3` per entrambi i database; non dividere le risorse tra regioni.
 
-## Testing & qualità
+   ```bash
+   doctl databases create tracks-popularity-mysql \
+     --engine mysql --version 8.4 --region fra1 \
+     --size db-s-1vcpu-1gb --num-nodes 1 --wait
 
-### Frontend
+   doctl databases create tracks-popularity-valkey \
+     --engine valkey --version 8 --region fra1 \
+     --size db-s-1vcpu-1gb --num-nodes 1 --wait
+   ```
+
+3. Crea il database applicativo e conserva l'utente gestito `doadmin`:
+
+   ```bash
+   MYSQL_CLUSTER_ID=$(doctl databases list --format ID,Name --no-header | awk '$2 == "tracks-popularity-mysql" { print $1 }')
+   test -n "$MYSQL_CLUSTER_ID"
+   doctl databases db create "$MYSQL_CLUSTER_ID" tracksbypopularity
+   ```
+
+4. Crea interattivamente i secret GitHub del repository. Non inserire mai i valori nei file:
+
+   ```bash
+   gh secret set DIGITALOCEAN_ACCESS_TOKEN
+   gh secret set SPOTIFY_CLIENT_ID
+   gh secret set SPOTIFY_CLIENT_SECRET
+   ```
+
+5. Avvia il primo deploy e attendi i job `verify` e `deploy`:
+
+   ```bash
+   gh workflow run deploy-digitalocean.yml --ref main
+   gh run watch
+   ```
+
+   Il workflow crea o aggiorna l'app `tracks-popularity` e collega i cluster `tracks-popularity-mysql` e `tracks-popularity-valkey`.
+
+6. Leggi l'URL generato `https://*.ondigitalocean.app` in App Platform. Nel pannello Spotify Developer registra esattamente questo callback:
+
+   ```text
+   ${APP_URL}/api/auth/callback
+   ```
+
+   Se cambia l'origin primario, rilancia `deploy-digitalocean.yml` per aggiornare il binding `${APP_URL}` nel deploy.
+
+7. Verifica l'applicazione pubblicata:
+
+   ```bash
+   curl -fsS "${APP_URL}/api/health"
+   curl -fsS "${APP_URL}/api/auth/login"
+   curl -fsS "${APP_URL}/auth/callback"
+   ```
+
+   Health deve restituire `Healthy`. Decodifica `loginUrl` e conferma che `redirect_uri` sia esattamente `${APP_URL}/api/auth/callback`. La route SPA callback aperta direttamente deve restituire il frontend, non 404. Completa un login Spotify reale, poi verifica che il cookie `spotify_user_id` abbia `HttpOnly`, `Secure` e `SameSite=Lax` e che `GET ${APP_URL}/api/auth/is-auth` restituisca `authenticated: true` nella stessa sessione.
+
+### Dominio custom
+
+Imposta il dominio custom come primario in App Platform, aggiorna il callback Spotify al nuovo `${APP_URL}/api/auth/callback`, quindi ridistribuisci. `FRONTEND_ORIGIN` e `REDIRECT_URI` seguono `${APP_URL}` senza host hardcoded nel codice.
+
+### Rollback
+
+Apri la pagina **Deployments** dell'app in DigitalOcean App Platform e ridistribuisci un deployment noto e funzionante. La cancellazione dei database non è un rollback: i cluster MySQL e Valkey gestiti devono restare collegati e conservare lo stato applicativo.
+
+## Comandi di verifica
 
 ```bash
+dotnet test tracksByPopularity/tracksByPopularity.sln
+docker build -f tracksByPopularity/Dockerfile -t tracks-popularity-backend tracksByPopularity
 cd tracksByPopularityFront
-npm run lint
-npm run type-check
-npm run test:unit
+npm ci
+VITE_API_BASE_URL=same-origin npm run build
+npm run test:unit -- --run src/__tests__/env.spec.ts
 ```
-
-### Backend
-
-```bash
-cd tracksByPopularity
-dotnet test
-```
-
-## Note utili
-
-- **Segreti**: non committare `.env`. Usa `.env.example` come template.
-- **Redis**: usato per caching (token Spotify e dati per ridurre chiamate alle API Spotify).
-- **DB**: nel `docker-compose.yml` è presente MariaDB; in dev locale puoi usare la stessa tramite Docker.

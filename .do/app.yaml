@@ -1,0 +1,105 @@
+name: tracks-popularity
+region: fra
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+services:
+  - name: backend
+    git:
+      repo_clone_url: https://github.com/RubenPari/trackByPopularityComplete.git
+      branch: main
+    source_dir: tracksByPopularity
+    dockerfile_path: tracksByPopularity/Dockerfile
+    http_port: 8080
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb-fixed
+    health_check:
+      http_path: /api/health
+      port: 8080
+      initial_delay_seconds: 30
+      period_seconds: 10
+      timeout_seconds: 5
+      success_threshold: 1
+      failure_threshold: 12
+    envs:
+      - key: ASPNETCORE_ENVIRONMENT
+        scope: RUN_TIME
+        value: Production
+      - key: ASPNETCORE_FORWARDEDHEADERS_ENABLED
+        scope: RUN_TIME
+        value: "true"
+      - key: MIGRATE_ON_STARTUP
+        scope: RUN_TIME
+        value: "true"
+      - key: FRONTEND_ORIGIN
+        scope: RUN_TIME
+        value: ${APP_URL}
+      - key: REDIRECT_URI
+        scope: RUN_TIME
+        value: ${APP_URL}
+      - key: REDIS_USE_SSL
+        scope: RUN_TIME
+        value: "true"
+      - key: CLIENT_ID
+        scope: RUN_TIME
+        type: SECRET
+        value: ${SPOTIFY_CLIENT_ID}
+      - key: CLIENT_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${SPOTIFY_CLIENT_SECRET}
+      - key: DATABASE_CONNECTION_STRING
+        scope: RUN_TIME
+        value: Server=${mysql.HOSTNAME};Port=${mysql.PORT};Database=${mysql.DATABASE};User=${mysql.USERNAME};Password=${mysql.PASSWORD};SslMode=Required;
+      - key: REDIS_HOST
+        scope: RUN_TIME
+        value: ${valkey.HOSTNAME}
+      - key: REDIS_PORT
+        scope: RUN_TIME
+        value: ${valkey.PORT}
+      - key: REDIS_PASSWORD
+        scope: RUN_TIME
+        value: ${valkey.PASSWORD}
+
+static_sites:
+  - name: frontend
+    git:
+      repo_clone_url: https://github.com/RubenPari/trackByPopularityComplete.git
+      branch: main
+    source_dir: tracksByPopularityFront
+    environment_slug: node-js
+    build_command: npm ci && npm run build
+    output_dir: dist
+    catchall_document: index.html
+    envs:
+      - key: VITE_API_BASE_URL
+        scope: BUILD_TIME
+        value: same-origin
+
+databases:
+  - name: mysql
+    engine: MYSQL
+    production: true
+    cluster_name: tracks-popularity-mysql
+    db_name: tracksbypopularity
+    db_user: doadmin
+  - name: valkey
+    engine: VALKEY
+    production: true
+    cluster_name: tracks-popularity-valkey
+
+ingress:
+  rules:
+    - match:
+        path:
+          prefix: /api
+      component:
+        name: backend
+        preserve_path_prefix: true
+    - match:
+        path:
+          prefix: /
+      component:
+        name: frontend

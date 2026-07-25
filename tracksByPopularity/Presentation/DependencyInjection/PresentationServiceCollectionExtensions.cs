@@ -33,8 +33,7 @@ public static class PresentationServiceCollectionExtensions
             Environment.GetEnvironmentVariable("FRONTEND_ORIGIN"),
             configuration["AppSettings:FrontendOrigin"],
             "http://localhost:5173",
-            "http://127.0.0.1:5173",
-            "https://ruben-tracks-popularity-frontend.fly.dev"
+            "http://127.0.0.1:5173"
         }
         .OfType<string>()
         .Where(origin => !string.IsNullOrWhiteSpace(origin))
