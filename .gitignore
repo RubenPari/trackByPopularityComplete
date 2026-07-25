@@ -92,7 +92,6 @@ __screenshots__/
 *.db
 *.sqlite
 *.sqlite3
-package-lock.json
 yarn.lock
 pnpm-lock.yaml
 *.sig
