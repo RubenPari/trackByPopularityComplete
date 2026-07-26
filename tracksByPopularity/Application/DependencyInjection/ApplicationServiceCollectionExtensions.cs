@@ -61,6 +61,7 @@ public static class ApplicationServiceCollectionExtensions
         services.AddScoped<IPlaylistOrganizationService, PlaylistOrganizationService>();
         services.AddScoped<ITrackOrganizationService, TrackOrganizationService>();
         services.AddScoped<IArtistTrackOrganizationService, ArtistTrackOrganizationService>();
+        services.AddScoped<IArtistLibraryService, ArtistLibraryService>();
         return services;
     }
 }

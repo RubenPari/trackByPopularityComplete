@@ -15,6 +15,8 @@ namespace tracksByPopularity.Presentation.Controllers;
 public class TrackController(
     ITrackCacheService trackCacheService,
     IArtistCacheService artistCacheService,
+    IPlaylistCacheService playlistCacheService,
+    IArtistLibraryService artistLibraryService,
     ITrackOrganizationService trackOrganizationService,
     IArtistTrackOrganizationService artistTrackOrganizationService,
     ILogger<TrackController> logger)
@@ -55,7 +57,11 @@ public class TrackController(
             spotifyClient
         );
 
-        if (added) return Ok(ApiResponse.Ok("Tracks added to playlist"));
+        if (added)
+        {
+            await playlistCacheService.InvalidateAsync(spotifyUserId);
+            return Ok(ApiResponse.Ok("Tracks added to playlist"));
+        }
 
         logger.LogWarning("Failed to add tracks to playlist for popularity range: {Range}", range);
         return BadRequest(ApiResponse.Fail("Failed to add tracks to playlist"));
@@ -78,18 +84,7 @@ public class TrackController(
         // Use cached tracks (ISP: only inject what we need)
         var allTracks = await trackCacheService.GetAsync(spotifyClient, spotifyUserId);
 
-        var artists = allTracks
-            .SelectMany(st => st.Track.Artists.Select(a => new { a.Id, a.Name, TrackId = st.Track.Id }))
-            .Where(x => followedIds.Contains(x.Id))
-            .GroupBy(x => x.Id)
-            .Select(g => new ArtistSummary
-            {
-                Id = g.Key,
-                Name = g.First().Name,
-                Count = g.Select(x => x.TrackId).Distinct().Count()
-            })
-            .OrderByDescending(a => a.Count)
-            .ToList();
+        var artists = await artistLibraryService.GetFollowedLibraryArtistsAsync(allTracks, followedIds);
 
         // Set cache headers for client-side caching
         Response.Headers["Cache-Control"] = "public, max-age=60";
@@ -116,7 +111,11 @@ public class TrackController(
             spotifyClient
         );
 
-        if (added) return Ok(ApiResponse.Ok("Tracks added to playlist"));
+        if (added)
+        {
+            await playlistCacheService.InvalidateAsync(spotifyUserId);
+            return Ok(ApiResponse.Ok("Tracks added to playlist"));
+        }
 
         logger.LogWarning("Failed to organize tracks for artist: {ArtistId}", request.ArtistId);
         return BadRequest(ApiResponse.Fail("Failed to add tracks to playlist"));

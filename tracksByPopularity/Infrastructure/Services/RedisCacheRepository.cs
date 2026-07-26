@@ -69,7 +69,11 @@ public class RedisCacheRepository : ICacheRepository
             }
 
             // Check if data is compressed
-            var bytes = (byte[])value;
+            var bytes = (byte[]?)value;
+            if (bytes is null)
+            {
+                return null;
+            }
             if (bytes.Length > 0 && bytes[0] == CompressionMarker)
             {
                 // Decompress
