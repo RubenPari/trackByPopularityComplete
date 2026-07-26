@@ -8,7 +8,6 @@ export function useArtistSelection() {
     loading: artistsLoading,
     isRevalidating,
     initialize,
-    refresh,
     clearCache,
   } = useCachedArtists()
 
