@@ -7,7 +7,9 @@
     "somethingWentWrong": "Something went wrong",
     "unexpectedError": "An unexpected error occurred",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "cancel": "Cancel",
+    "confirmAction": "Confirm action"
   },
   "auth": {
     "loginTitle": "Welcome Back",
@@ -193,5 +195,107 @@
     "delete": "Delete",
     "deleteConfirm": "Delete backup of \"{name}\"? This action cannot be undone.",
     "deleteSuccess": "Backup deleted successfully"
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "artists": "Artists",
+    "history": "History",
+    "settings": "Settings",
+    "main": "Main navigation",
+    "skipToContent": "Skip to content",
+    "spotifyConnected": "Spotify account",
+    "active": "Connected and active"
+  },
+  "theme": {
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme"
+  },
+  "dashboard": {
+    "eyebrow": "Your library, in orbit",
+    "titleStart": "Give your Spotify library",
+    "titleAccent": "a rhythm.",
+    "description": "Organize tracks by popularity in one move. Every operation is protected by an automatic backup.",
+    "refresh": "Refresh data",
+    "summary": "Library summary",
+    "managedPlaylists": "Managed playlists",
+    "totalTracks": "Organized tracks",
+    "lastActivity": "Last activity",
+    "noActivity": "No activity yet",
+    "organizeTitle": "Organize by popularity",
+    "organizeDescription": "Choose a range to update its playlist.",
+    "backupIncluded": "Backup included",
+    "ready": "Playlist ready",
+    "willCreate": "Will be created",
+    "organize": "Organize",
+    "organizeRange": "Organize {name}",
+    "latestBackup": "Latest backup",
+    "viewHistory": "Open history",
+    "confirmTitle": "Organize this range?",
+    "confirmDescription": "The playlist will be updated with every track in your library that falls within the selected range.",
+    "backupNote": "We will automatically save the current playlist before updating it.",
+    "confirmAction": "Start organizing"
+  },
+  "artistsPage": {
+    "eyebrow": "Explore your library",
+    "title": "Organize by artist",
+    "description": "Choose an artist and split their tracks into three playlists, from hidden gems to their biggest songs.",
+    "artistCount": "{count} artists",
+    "libraryTitle": "Your artists",
+    "libraryDescription": "Followed artists found in your library.",
+    "emptyDescription": "Save a few tracks on Spotify, then come back to get started.",
+    "noResultsDescription": "Try another name or clear your search.",
+    "selected": "Selected artist",
+    "selectedDescription": "{count} tracks will be distributed across three popularity ranges.",
+    "backupNote": "Existing playlists are protected with a backup before each change.",
+    "ready": "Ready when you are",
+    "selectTitle": "Choose an artist",
+    "selectDescription": "Select an artist from the list to preview the organization.",
+    "confirmTitle": "Organize this artist?",
+    "confirmDescription": "Tracks will be distributed across three dedicated playlists based on popularity.",
+    "confirmAction": "Organize artist"
+  },
+  "historyPage": {
+    "eyebrow": "Your safety net",
+    "title": "Backup history",
+    "description": "Review every change, restore a previous playlist or delete backups you no longer need.",
+    "retention": "Kept for 30 days",
+    "activityTitle": "Recent activity",
+    "activityDescription": "The newest backups appear first.",
+    "filterLabel": "Filter history",
+    "filters": {
+      "all": "All",
+      "popularity": "Popularity",
+      "artist": "Artist"
+    },
+    "emptyDescription": "Backups will appear here after your first organization.",
+    "restoreTitle": "Restore this backup?",
+    "deleteTitle": "Delete this backup?"
+  },
+  "settingsPage": {
+    "eyebrow": "Make it yours",
+    "description": "Choose the app appearance and language, and manage your Spotify session.",
+    "appearance": "Appearance",
+    "appearanceDescription": "Choose the theme that suits your environment.",
+    "dark": "Dark",
+    "light": "Light",
+    "language": "Language",
+    "languageDescription": "Change the interface language.",
+    "spotifyDescription": "Tracks by Popularity uses your Spotify session only to read your library and manage requested playlists.",
+    "logoutDescription": "End the Spotify session on this device.",
+    "logoutTitle": "Log out of Tracks by Popularity?",
+    "logoutConfirm": "You will need to sign in with Spotify again to manage your library.",
+    "logoutNote": "Your existing playlists and backups will not be deleted."
+  },
+  "loginPage": {
+    "pill": "Your library, finally organized",
+    "titleStart": "Discover the rhythm",
+    "titleAccent": "of your music.",
+    "description": "Turn a messy library into living playlists, sorted by popularity and always protected.",
+    "featureOrganize": "Smart organization",
+    "featureOrganizeDescription": "Five popularity ranges, ready to refresh.",
+    "featureSafe": "Protected changes",
+    "featureSafeDescription": "An automatic backup before every operation.",
+    "cardEyebrow": "Connect your music",
+    "privacy": "Secure Spotify sign-in. Your password is never stored."
   }
 }

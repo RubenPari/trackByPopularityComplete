@@ -6,9 +6,30 @@ const router = createRouter({
   routes: [
     {
       path: '/',
-      name: 'home',
-      component: () => import('@/views/HomeView.vue'),
+      component: () => import('@/components/AppShell.vue'),
       meta: { requiresAuth: true },
+      children: [
+        {
+          path: '',
+          name: 'home',
+          component: () => import('@/views/HomeView.vue'),
+        },
+        {
+          path: 'artists',
+          name: 'artists',
+          component: () => import('@/views/ArtistsView.vue'),
+        },
+        {
+          path: 'history',
+          name: 'history',
+          component: () => import('@/views/HistoryView.vue'),
+        },
+        {
+          path: 'settings',
+          name: 'settings',
+          component: () => import('@/views/SettingsView.vue'),
+        },
+      ],
     },
     {
       path: '/login',
@@ -19,16 +40,7 @@ const router = createRouter({
     {
       path: '/auth/callback',
       name: 'spotify-callback',
-      component: () => import('@/views/HomeView.vue'),
-      beforeEnter: (to, _from, next) => {
-        next({ name: 'home', replace: true })
-      },
-    },
-    {
-      path: '/settings',
-      name: 'settings',
-      component: () => import('@/views/SettingsView.vue'),
-      meta: { requiresAuth: true },
+      redirect: { name: 'home' },
     },
   ],
 })
