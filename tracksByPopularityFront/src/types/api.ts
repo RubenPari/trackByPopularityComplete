@@ -17,20 +17,6 @@ export interface ApiErrorResponse {
 export type ApiResponse<T = unknown> = ApiSuccessResponse<T> | ApiErrorResponse
 
 /**
- * Track-related API responses
- */
-export interface TrackResponse {
-  message: string
-}
-
-/**
- * Playlist-related API responses
- */
-export interface PlaylistResponse {
-  message: string
-}
-
-/**
  * Auth-related API responses
  */
 export interface AuthStatusResponse {
@@ -40,11 +26,6 @@ export interface AuthStatusResponse {
 
 export interface LoginResponse {
   loginUrl: string
-}
-
-export interface CallbackResponse {
-  message: string
-  userId: string
 }
 
 /**

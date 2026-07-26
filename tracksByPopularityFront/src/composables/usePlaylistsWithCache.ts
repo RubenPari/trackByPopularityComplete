@@ -1,12 +1,7 @@
 import { computed, type ComputedRef } from 'vue'
-import { playlistApiService } from '@/services/playlistApi'
-import { useCachedApi } from './useCachedApi'
+import { storeToRefs } from 'pinia'
+import { useCatalogStore } from '@/stores/catalog'
 import type { PlaylistInfo } from '@/types/api'
-import { createLogger } from '@/utils/logger'
-
-const logger = createLogger('usePlaylistsWithCache')
-
-const CACHE_STALE_TIME = 5 * 60 * 1000 // 5 minutes
 
 /**
  * Composable for managing user playlists with caching support.
@@ -25,66 +20,17 @@ const CACHE_STALE_TIME = 5 * 60 * 1000 // 5 minutes
  * ```
  */
 export function usePlaylistsWithCache() {
-  const {
-    data: playlistsFromCache,
-    loading,
-    error,
-    isRevalidating,
-    lastUpdated,
-    refresh,
-    clearCache,
-  } = useCachedApi<PlaylistInfo[]>(
-    async () => {
-      logger.info('Fetching playlists from API')
-      const response = await playlistApiService.getAllPlaylists()
-
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch playlists')
-      }
-
-      return response.data
-    },
-    'playlists-cache',
-    {
-      staleTime: CACHE_STALE_TIME,
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-    },
-  )
-
-  /**
-   * Force refresh playlists
-   */
-  const forceRefresh = async (): Promise<void> => {
-    clearCache()
-    await refresh()
-  }
-
-  /**
-   * Check if cache is stale
-   */
-  const isCacheStale = computed(() => {
-    if (!lastUpdated.value) return true
-    return Date.now() - lastUpdated.value > CACHE_STALE_TIME
-  })
+  const store = useCatalogStore()
+  const { playlists, playlistsLoading, playlistsRefreshing, playlistsError } = storeToRefs(store)
 
   return {
-    /** List of user playlists (from cache or fresh) */
-    playlists: computed(() => playlistsFromCache.value || []),
-    /** Loading state for initial fetch */
-    loading,
-    /** Error state */
-    error,
-    /** Whether data is being refreshed in background */
-    isRevalidating,
-    /** Timestamp of last successful fetch */
-    lastUpdated,
-    /** Force a refresh */
-    forceRefresh,
-    /** Clear local cache */
-    clearCache,
-    /** Whether the cache is stale */
-    isCacheStale,
+    playlists: computed(() => playlists.value),
+    loading: playlistsLoading,
+    error: playlistsError,
+    isRevalidating: playlistsRefreshing,
+    initialize: store.initializePlaylists,
+    forceRefresh: store.refreshPlaylists,
+    clearCache: store.clearPlaylists,
   }
 }
 

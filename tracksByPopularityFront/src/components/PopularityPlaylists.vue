@@ -36,7 +36,7 @@ import { usePlaylistsWithCache } from '@/composables/usePlaylistsWithCache'
 import type { PopularityRange } from '@/types/popularity'
 
 const { t } = useI18n()
-const { playlists, loading, forceRefresh } = usePlaylistsWithCache()
+const { playlists, loading, initialize } = usePlaylistsWithCache()
 
 interface PopularityTier {
   tier: PopularityRange
@@ -82,7 +82,7 @@ const popularityPlaylists = computed(() => {
 })
 
 onMounted(() => {
-  forceRefresh()
+  initialize()
 })
 </script>
 

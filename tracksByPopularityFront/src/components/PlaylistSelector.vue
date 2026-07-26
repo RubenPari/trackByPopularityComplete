@@ -66,7 +66,7 @@ const emit = defineEmits<{
   'update:modelValue': [value: string]
 }>()
 
-const { playlists, loading, forceRefresh } = usePlaylistsWithCache()
+const { playlists, loading, initialize, forceRefresh } = usePlaylistsWithCache()
 
 const inputId = `playlist-select-${Math.random().toString(36).substr(2, 9)}`
 const hasError = computed(() => !!props.errorMessage)
@@ -82,7 +82,7 @@ const refreshPlaylists = async () => {
 
 onMounted(() => {
   if (playlists.value.length === 0) {
-    forceRefresh()
+    initialize()
   }
 })
 </script>

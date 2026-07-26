@@ -1,13 +1,6 @@
 import { computed } from 'vue'
-import { trackApiService } from '@/services/trackApi'
-import { useCachedApi } from './useCachedApi'
-import type { ArtistSummary } from '@/types/api'
-import { createLogger } from '@/utils/logger'
-
-const logger = createLogger('useCachedArtists')
-
-const ARTISTS_CACHE_KEY = 'artists-cache'
-const ARTISTS_STALE_TIME = 5 * 60 * 1000 // 5 minutes
+import { storeToRefs } from 'pinia'
+import { useCatalogStore } from '@/stores/catalog'
 
 /**
  * Composable for fetching and caching followed artists from user's library.
@@ -26,47 +19,16 @@ const ARTISTS_STALE_TIME = 5 * 60 * 1000 // 5 minutes
  * ```
  */
 export function useCachedArtists() {
-  const {
-    data: artistsFromCache,
-    loading,
-    error,
-    isRevalidating,
-    lastUpdated,
-    refresh,
-    clearCache,
-  } = useCachedApi<ArtistSummary[]>(
-    async () => {
-      logger.info('Fetching artists from API')
-      const response = await trackApiService.getLibraryArtists()
-
-      if (!response.success) {
-        throw new Error(response.error || 'Failed to fetch artists')
-      }
-
-      return response.data
-    },
-    ARTISTS_CACHE_KEY,
-    {
-      staleTime: ARTISTS_STALE_TIME,
-      revalidateOnFocus: true,
-      revalidateOnReconnect: true,
-    },
-  )
+  const store = useCatalogStore()
+  const { artists, artistsLoading, artistsRefreshing, artistsError } = storeToRefs(store)
 
   return {
-    /** List of followed artists sorted by track count */
-    artists: computed(() => artistsFromCache.value || []),
-    /** Loading state for initial fetch */
-    loading,
-    /** Error state */
-    error,
-    /** Whether data is being refreshed in background */
-    isRevalidating,
-    /** Timestamp of last successful fetch */
-    lastUpdated,
-    /** Force a refresh */
-    refresh,
-    /** Clear local cache */
-    clearCache,
+    artists: computed(() => artists.value),
+    loading: artistsLoading,
+    error: artistsError,
+    isRevalidating: artistsRefreshing,
+    initialize: store.initializeArtists,
+    refresh: store.refreshArtists,
+    clearCache: store.clearArtists,
   }
 }

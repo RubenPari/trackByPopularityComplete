@@ -44,40 +44,9 @@ export function saveToStorage<T>(key: string, data: T): void {
  * Clear specific key from localStorage
  */
 export function clearStorage(key: string): void {
-  localStorage.removeItem(key)
-}
-
-/**
- * Clear all app caches from localStorage
- */
-export function clearAllStorageCaches(): void {
-  const CACHE_VERSION_KEY = 'cache_version'
-  const CURRENT_CACHE_VERSION = 1
-
-  // Update cache version to invalidate all old caches
-  localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION.toString())
-
-  // Clear all caches with old version
-  const keysToRemove: string[] = []
-  for (let i = 0; i < localStorage.length; i++) {
-    const key = localStorage.key(i)
-    if (key && key.endsWith('-cache')) {
-      keysToRemove.push(key)
-    }
-  }
-  keysToRemove.forEach((key) => localStorage.removeItem(key))
-}
-
-/**
- * Initialize cache versioning
- */
-export function initStorageVersioning(): void {
-  const CACHE_VERSION_KEY = 'cache_version'
-  const CURRENT_CACHE_VERSION = 1
-
-  const storedVersion = localStorage.getItem(CACHE_VERSION_KEY)
-  if (!storedVersion || parseInt(storedVersion, 10) < CURRENT_CACHE_VERSION) {
-    clearAllStorageCaches()
-    localStorage.setItem(CACHE_VERSION_KEY, CURRENT_CACHE_VERSION.toString())
+  try {
+    localStorage.removeItem(key)
+  } catch {
+    // localStorage might be unavailable
   }
 }

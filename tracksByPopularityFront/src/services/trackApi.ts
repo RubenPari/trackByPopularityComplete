@@ -1,5 +1,5 @@
 import { httpClient } from './httpClient'
-import type { ApiResponse, TrackResponse, ArtistSummary } from '@/types/api'
+import type { ApiResponse, ArtistSummary } from '@/types/api'
 import type { PopularityRange } from '@/types/popularity'
 import { API_ENDPOINTS } from '@/utils/constants'
 
@@ -13,8 +13,8 @@ export class TrackApiService {
    * Playlists are automatically created by the backend if they don't exist.
    * @param range - The popularity range ('less', 'less-medium', 'medium', 'more-medium', 'more')
    */
-  async addTracksByPopularity(range: PopularityRange): Promise<ApiResponse<TrackResponse>> {
-    return httpClient.post<TrackResponse>(API_ENDPOINTS.TRACK.POPULARITY(range))
+  async addTracksByPopularity(range: PopularityRange): Promise<ApiResponse<void>> {
+    return httpClient.post<void>(API_ENDPOINTS.TRACK.POPULARITY(range))
   }
 
   /**
@@ -28,8 +28,8 @@ export class TrackApiService {
    * Adds tracks by a specific artist to playlists based on popularity
    * @param artistId - The Spotify artist ID
    */
-  async addTracksByArtist(artistId: string): Promise<ApiResponse<TrackResponse>> {
-    return httpClient.post<TrackResponse>(API_ENDPOINTS.TRACK.ARTIST, undefined, {
+  async addTracksByArtist(artistId: string): Promise<ApiResponse<void>> {
+    return httpClient.post<void>(API_ENDPOINTS.TRACK.ARTIST, undefined, {
       params: { artistId },
     })
   }
