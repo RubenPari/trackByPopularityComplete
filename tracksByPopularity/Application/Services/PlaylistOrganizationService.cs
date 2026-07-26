@@ -9,6 +9,7 @@ public class PlaylistOrganizationService(
     ITrackService trackService,
     IPlaylistService playlistService,
     IPlaylistBackupService backupService,
+    ISpotifyPlaylistGatewayFactory playlistGatewayFactory,
     ILogger<PlaylistOrganizationService> logger)
     : IPlaylistOrganizationService
 {
@@ -27,7 +28,11 @@ public class PlaylistOrganizationService(
             tracksToAdd.Count
         );
 
-        await backupService.CreateSnapshotAsync(spotifyUserId, playlistId, spotifyClient, operationType);
+        await backupService.CreateSnapshotAsync(
+            spotifyUserId,
+            playlistId,
+            playlistGatewayFactory.Create(spotifyClient),
+            operationType);
         await playlistService.RemoveAllTracksAsync(playlistId, spotifyClient);
 
         if (tracksToAdd.Count == 0)

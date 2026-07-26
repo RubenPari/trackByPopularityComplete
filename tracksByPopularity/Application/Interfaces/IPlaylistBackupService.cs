@@ -1,4 +1,3 @@
-using SpotifyAPI.Web;
 using tracksByPopularity.Application.DTOs;
 
 namespace tracksByPopularity.Application.Interfaces;
@@ -16,7 +15,7 @@ public interface IPlaylistBackupService
     /// <param name="spotifyClient">The spotify client.</param>
     /// <param name="operationType">The operation type.</param>
     /// <returns></returns>
-    Task<string> CreateSnapshotAsync(string spotifyUserId, string playlistId, SpotifyClient spotifyClient, string operationType);
+    Task<string> CreateSnapshotAsync(string spotifyUserId, string playlistId, ISpotifyPlaylistGateway playlistGateway, string operationType);
     
     /// <summary>
     /// Gets the snapshots for the user.
@@ -32,7 +31,7 @@ public interface IPlaylistBackupService
     /// <param name="spotifyUserId">The Spotify user id.</param>
     /// <param name="spotifyClient">The spotify client.</param>
     /// <returns></returns>
-    Task<bool> RestoreSnapshotAsync(string snapshotId, string spotifyUserId, SpotifyClient spotifyClient);
+    Task<bool> RestoreSnapshotAsync(string snapshotId, string spotifyUserId, ISpotifyPlaylistGateway playlistGateway);
 
     /// <summary>
     /// Deletes a snapshot.

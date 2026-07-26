@@ -10,6 +10,9 @@ public static class HttpContextSpotifyExtensions
     public static SpotifyClient GetSpotifyClient(this HttpContext context)
         => (SpotifyClient)context.Items[SpotifyAuthFilter.SpotifyClientKey]!;
 
+    public static ISpotifyPlaylistGateway GetSpotifyPlaylistGateway(this HttpContext context)
+        => (ISpotifyPlaylistGateway)context.Items[SpotifyAuthFilter.SpotifyPlaylistGatewayKey]!;
+
     /// <summary>
     /// Gets the Spotify user id from the context.
     /// </summary>

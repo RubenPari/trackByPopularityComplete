@@ -42,8 +42,8 @@ public class BackupController(
     public async Task<ActionResult<ApiResponse>> RestoreSnapshot(string snapshotId)
     {
         var spotifyUserId = HttpContext.GetSpotifyUserId();
-        var spotifyClient = HttpContext.GetSpotifyClient();
-        var restored = await backupService.RestoreSnapshotAsync(snapshotId, spotifyUserId, spotifyClient);
+        var playlistGateway = HttpContext.GetSpotifyPlaylistGateway();
+        var restored = await backupService.RestoreSnapshotAsync(snapshotId, spotifyUserId, playlistGateway);
 
         if (restored)
         {

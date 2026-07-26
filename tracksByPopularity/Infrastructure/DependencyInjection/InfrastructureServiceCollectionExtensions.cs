@@ -26,13 +26,14 @@ public static class InfrastructureServiceCollectionExtensions
         // MySQL database context
         services.AddDbContext<AppDbContext>(options =>
             options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
-        services.AddScoped<IAppDbContext>(sp => sp.GetRequiredService<AppDbContext>());
+        services.AddScoped<IPlaylistSnapshotRepository, PlaylistSnapshotRepository>();
 
         // Spotify auth
         services.AddScoped<ISpotifyAuthService, SpotifyAuthService>();
 
         // Infrastructure application services backed by external resources
         services.AddScoped<IPlaylistBackupService, PlaylistBackupService>();
+        services.AddSingleton<ISpotifyPlaylistGatewayFactory, SpotifyPlaylistGatewayFactory>();
 
         // Redis connection
         services.AddSingleton<IConnectionMultiplexer>(sp =>

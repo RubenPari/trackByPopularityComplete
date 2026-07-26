@@ -1,7 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-using SpotifyAPI.Web;
 using tracksByPopularity.Application.DTOs;
-using tracksByPopularity.Application.Helpers;
 using tracksByPopularity.Application.Interfaces;
 using tracksByPopularity.Domain.Entities;
 
@@ -9,47 +6,45 @@ namespace tracksByPopularity.Infrastructure.Services;
 
 public class PlaylistBackupService : IPlaylistBackupService
 {
-    private readonly IAppDbContext _dbContext;
+    private readonly IPlaylistSnapshotRepository _snapshotRepository;
     private readonly ILogger<PlaylistBackupService> _logger;
 
-    public PlaylistBackupService(IAppDbContext dbContext, ILogger<PlaylistBackupService> logger)
+    public PlaylistBackupService(IPlaylistSnapshotRepository snapshotRepository, ILogger<PlaylistBackupService> logger)
     {
-        _dbContext = dbContext;
+        _snapshotRepository = snapshotRepository;
         _logger = logger;
     }
 
-    public async Task<string> CreateSnapshotAsync(string spotifyUserId, string playlistId, SpotifyClient spotifyClient, string operationType)
+    public async Task<string> CreateSnapshotAsync(
+        string spotifyUserId,
+        string playlistId,
+        ISpotifyPlaylistGateway playlistGateway,
+        string operationType)
     {
         _logger.LogInformation("Creating snapshot for playlist {PlaylistId} for user {SpotifyUserId}", playlistId, spotifyUserId);
 
-        var firstPage = await spotifyClient.Playlists.GetItems(playlistId);
-        var allItems = await spotifyClient.PaginateAll(firstPage);
-        var trackUris = allItems
-            .Where(item => item.Track is FullTrack)
-            .Select((item, index) => new SnapshotTrack
+        var contents = await playlistGateway.GetContentsAsync(playlistId);
+        var trackUris = contents.TrackUris
+            .Select((trackUri, index) => new SnapshotTrack
             {
-                TrackUri = ((FullTrack)item.Track).Uri,
+                TrackUri = trackUri,
                 OrderIndex = index
             })
             .ToList();
-
-        var playlist = await spotifyClient.Playlists.Get(playlistId);
-        var playlistName = playlist?.Name ?? playlistId;
 
         var snapshot = new Domain.Entities.PlaylistSnapshot
         {
             Id = Guid.NewGuid(),
             SpotifyUserId = spotifyUserId,
             PlaylistId = playlistId,
-            PlaylistName = playlistName,
+            PlaylistName = contents.Name,
             OperationType = operationType,
             CreatedAt = DateTime.UtcNow,
             TrackCount = trackUris.Count,
             Tracks = trackUris
         };
 
-        _dbContext.PlaylistSnapshots.Add(snapshot);
-        await _dbContext.SaveChangesAsync();
+        await _snapshotRepository.AddAsync(snapshot);
 
         _logger.LogInformation("Snapshot {SnapshotId} created for playlist {PlaylistId} with {Count} tracks",
             snapshot.Id, playlistId, trackUris.Count);
@@ -59,25 +54,24 @@ public class PlaylistBackupService : IPlaylistBackupService
 
     public async Task<IList<Application.DTOs.PlaylistSnapshot>> GetSnapshotsAsync(string spotifyUserId)
     {
-        var snapshots = await _dbContext.PlaylistSnapshots
-            .Where(s => s.SpotifyUserId == spotifyUserId)
-            .OrderByDescending(s => s.CreatedAt)
-            .Select(s => new Application.DTOs.PlaylistSnapshot
+        var snapshots = await _snapshotRepository.GetByUserAsync(spotifyUserId);
+        return snapshots.Select(snapshot => new Application.DTOs.PlaylistSnapshot
             {
-                Id = s.Id.ToString(),
-                PlaylistId = s.PlaylistId,
-                PlaylistName = s.PlaylistName,
-                OperationType = s.OperationType,
-                CreatedAt = s.CreatedAt,
-                TrackCount = s.TrackCount,
-                TrackUris = s.Tracks.OrderBy(t => t.OrderIndex).Select(t => t.TrackUri).ToList()
+                Id = snapshot.Id.ToString(),
+                PlaylistId = snapshot.PlaylistId,
+                PlaylistName = snapshot.PlaylistName,
+                OperationType = snapshot.OperationType,
+                CreatedAt = snapshot.CreatedAt,
+                TrackCount = snapshot.TrackCount,
+                TrackUris = snapshot.Tracks.OrderBy(track => track.OrderIndex).Select(track => track.TrackUri).ToList()
             })
-            .ToListAsync();
-
-        return snapshots;
+            .ToList();
     }
 
-    public async Task<bool> RestoreSnapshotAsync(string snapshotId, string spotifyUserId, SpotifyClient spotifyClient)
+    public async Task<bool> RestoreSnapshotAsync(
+        string snapshotId,
+        string spotifyUserId,
+        ISpotifyPlaylistGateway playlistGateway)
     {
         if (!Guid.TryParse(snapshotId, out var snapshotGuid))
         {
@@ -85,9 +79,7 @@ public class PlaylistBackupService : IPlaylistBackupService
             return false;
         }
 
-        var snapshot = await _dbContext.PlaylistSnapshots
-            .Include(s => s.Tracks)
-            .FirstOrDefaultAsync(s => s.Id == snapshotGuid && s.SpotifyUserId == spotifyUserId);
+        var snapshot = await _snapshotRepository.GetByIdAsync(snapshotGuid, spotifyUserId, includeTracks: true);
 
         if (snapshot == null)
         {
@@ -97,18 +89,10 @@ public class PlaylistBackupService : IPlaylistBackupService
 
         _logger.LogInformation("Restoring snapshot {SnapshotId} for playlist {PlaylistId}", snapshotId, snapshot.PlaylistId);
 
-        await spotifyClient.Playlists.ReplaceItems(
-            snapshot.PlaylistId,
-            new PlaylistReplaceItemsRequest(new List<string>())
-        );
+        await playlistGateway.ReplaceItemsAsync(snapshot.PlaylistId, []);
 
         var trackUris = snapshot.Tracks.OrderBy(t => t.OrderIndex).Select(t => t.TrackUri).ToList();
-        var restored = await PlaylistTrackBatchHelper.AddTrackUrisInBatchesAsync(
-            spotifyClient,
-            snapshot.PlaylistId,
-            trackUris,
-            _logger
-        );
+        var restored = await playlistGateway.AddItemsAsync(snapshot.PlaylistId, trackUris);
 
         if (!restored)
         {
@@ -128,8 +112,7 @@ public class PlaylistBackupService : IPlaylistBackupService
             return false;
         }
 
-        var snapshot = await _dbContext.PlaylistSnapshots
-            .FirstOrDefaultAsync(s => s.Id == snapshotGuid && s.SpotifyUserId == spotifyUserId);
+        var snapshot = await _snapshotRepository.GetByIdAsync(snapshotGuid, spotifyUserId);
 
         if (snapshot == null)
         {
@@ -137,8 +120,7 @@ public class PlaylistBackupService : IPlaylistBackupService
             return false;
         }
 
-        _dbContext.PlaylistSnapshots.Remove(snapshot);
-        await _dbContext.SaveChangesAsync();
+        await _snapshotRepository.DeleteAsync(snapshot);
 
         _logger.LogInformation("Deleted snapshot {SnapshotId}", snapshotId);
         return true;
@@ -148,9 +130,7 @@ public class PlaylistBackupService : IPlaylistBackupService
     {
         var cutoffDate = DateTime.UtcNow.AddDays(-daysOld);
 
-        var deletedCount = await _dbContext.PlaylistSnapshots
-            .Where(s => s.CreatedAt < cutoffDate)
-            .ExecuteDeleteAsync();
+        var deletedCount = await _snapshotRepository.DeleteOlderThanAsync(cutoffDate);
 
         _logger.LogInformation("Deleted {Count} snapshots older than {Days} days", deletedCount, daysOld);
         return deletedCount;

@@ -7,10 +7,13 @@ namespace tracksByPopularity.Presentation.Filters;
 /// Action filter that validates Spotify authentication via cookie and resolves the SpotifyClient.
 /// Apply [SpotifyAuth] to controllers or actions that require an authenticated Spotify user.
 /// </summary>
-public class SpotifyAuthFilter(ISpotifyAuthService spotifyAuthService) : IAsyncActionFilter
+public class SpotifyAuthFilter(
+    ISpotifyAuthService spotifyAuthService,
+    ISpotifyPlaylistGatewayFactory playlistGatewayFactory) : IAsyncActionFilter
 {
     public const string UserIdCookieName = "spotify_user_id";
     public const string SpotifyClientKey = "SpotifyClient";
+    public const string SpotifyPlaylistGatewayKey = "SpotifyPlaylistGateway";
     public const string SpotifyUserIdKey = "SpotifyUserId";
 
     public async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next)
@@ -25,9 +28,11 @@ public class SpotifyAuthFilter(ISpotifyAuthService spotifyAuthService) : IAsyncA
         }
 
         var spotifyClient = await spotifyAuthService.GetSpotifyClientForUserAsync(userId);
+        var playlistGateway = playlistGatewayFactory.Create(spotifyClient);
 
         context.HttpContext.Items[SpotifyUserIdKey] = userId;
         context.HttpContext.Items[SpotifyClientKey] = spotifyClient;
+        context.HttpContext.Items[SpotifyPlaylistGatewayKey] = playlistGateway;
 
         await next();
     }
