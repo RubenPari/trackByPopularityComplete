@@ -1,18 +1,5 @@
-<template>
-  <Transition name="slide-down">
-    <div v-if="message" :class="['notification', type]" role="alert" aria-live="polite">
-      <div class="notification-content">
-        <span class="icon" aria-hidden="true">{{ type === 'success' ? '✓' : '✕' }}</span>
-        <p class="message">{{ message }}</p>
-        <button class="close-button" @click="$emit('close')" :aria-label="t('common.close')">
-          ×
-        </button>
-      </div>
-    </div>
-  </Transition>
-</template>
-
 <script setup lang="ts">
+import { CheckCircle2, CircleAlert, X } from '@lucide/vue'
 import { useI18n } from 'vue-i18n'
 
 const { t } = useI18n()
@@ -27,100 +14,98 @@ defineEmits<{
 }>()
 </script>
 
+<template>
+  <Transition name="toast">
+    <div v-if="message" :class="['notification', type]" role="status" aria-live="polite">
+      <span class="notification-icon">
+        <CheckCircle2 v-if="type === 'success'" :size="19" aria-hidden="true" />
+        <CircleAlert v-else :size="19" aria-hidden="true" />
+      </span>
+      <p>{{ message }}</p>
+      <button type="button" :aria-label="t('common.close')" @click="$emit('close')">
+        <X :size="17" aria-hidden="true" />
+      </button>
+    </div>
+  </Transition>
+</template>
+
 <style scoped>
 .notification {
   position: fixed;
-  top: 1rem;
-  right: 1rem;
-  max-width: 500px;
-  padding: 1rem 1.5rem;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  animation: slideIn 0.3s ease;
-}
-
-.notification.success {
-  background: var(--color-success);
-  color: white;
-}
-
-.notification.error {
-  background: var(--color-error);
-  color: white;
-}
-
-.notification-content {
+  right: 1.1rem;
+  bottom: 1.1rem;
+  z-index: 1100;
   display: flex;
+  width: min(26rem, calc(100vw - 2rem));
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.7rem;
+  padding: 0.8rem;
+  color: var(--color-text);
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-surface-solid) 92%, transparent);
+  box-shadow: var(--shadow-dialog);
+  backdrop-filter: blur(20px);
 }
 
-.icon {
-  font-size: 1.25rem;
-  font-weight: bold;
-  flex-shrink: 0;
+.notification-icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  border-radius: 0.65rem;
 }
 
-.message {
+.success .notification-icon {
+  color: var(--color-success);
+  background: color-mix(in srgb, var(--color-success) 10%, transparent);
+}
+
+.error .notification-icon {
+  color: var(--color-error);
+  background: color-mix(in srgb, var(--color-error) 10%, transparent);
+}
+
+.notification p {
   flex: 1;
-  margin: 0;
-  font-size: 0.95rem;
-  line-height: 1.5;
+  font-size: 0.76rem;
+  line-height: 1.45;
 }
 
-.close-button {
-  background: none;
-  border: none;
-  color: inherit;
-  font-size: 1.5rem;
+.notification button {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
   cursor: pointer;
-  padding: 0;
-  width: 1.5rem;
-  height: 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-  flex-shrink: 0;
+  color: var(--color-text-muted);
+  border-radius: 0.6rem;
+  background: transparent;
 }
 
-.close-button:hover {
-  opacity: 1;
+.notification button:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
 }
 
-@keyframes slideIn {
-  from {
-    transform: translateX(100%);
-    opacity: 0;
-  }
-  to {
-    transform: translateX(0);
-    opacity: 1;
-  }
+.toast-enter-active,
+.toast-leave-active {
+  transition:
+    opacity 0.22s ease,
+    transform 0.22s ease;
 }
 
-.slide-down-enter-active,
-.slide-down-leave-active {
-  transition: all 0.3s ease;
-}
-
-.slide-down-enter-from {
-  transform: translateX(100%);
+.toast-enter-from,
+.toast-leave-to {
   opacity: 0;
+  transform: translateY(12px);
 }
 
-.slide-down-leave-to {
-  transform: translateX(100%);
-  opacity: 0;
-}
-
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .notification {
-    right: 0.5rem;
-    left: 0.5rem;
-    max-width: none;
+    bottom: 5.7rem;
   }
 }
 </style>

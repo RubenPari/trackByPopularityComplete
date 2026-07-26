@@ -1,10 +1,15 @@
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 
+import '@fontsource/space-grotesk/400.css'
+import '@fontsource/space-grotesk/500.css'
+import '@fontsource/space-grotesk/600.css'
+import '@fontsource/space-grotesk/700.css'
 import './assets/shared.css'
 import App from './App.vue'
 import router from './router'
 import i18n from './i18n'
+import '@/composables/useTheme'
 import { validateEnv } from './config/env'
 import { logger } from './utils/logger'
 
