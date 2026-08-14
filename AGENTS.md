@@ -1,230 +1,36 @@
-# AGENTS.md
+# Repository Guidelines
 
-This file provides guidance for agentic coding agents working in this repository.
+## Project Structure & Module Organization
 
-## Project Overview
+This repository contains two applications. `tracksByPopularity/` is an ASP.NET Core backend organized by Clean Architecture: `Domain/` holds business rules, `Application/` contains use cases and interfaces, `Infrastructure/` integrates Spotify, Redis, and persistence, and `Presentation/` exposes HTTP endpoints. Backend xUnit tests live in `tracksByPopularity/tests/tracksByPopularity.Tests/`.
 
-Two projects: ASP.NET Core backend (`tracksByPopularity/`) and Vue 3 frontend (`tracksByPopularityFront/`).
+`tracksByPopularityFront/` is a Vue 3 and TypeScript client. Application code is under `src/`, grouped into `components/`, `views/`, `composables/`, `services/`, `stores/`, `types/`, and `utils/`. Unit tests are in `src/__tests__/`; Playwright scenarios are in `e2e/`. Static files belong in `public/` or `src/assets/`.
 
----
+## Build, Test, and Development Commands
 
-## Build, Lint, and Test Commands
+- `cd tracksByPopularity && dotnet build`: compile the backend solution.
+- `cd tracksByPopularity && dotnet run`: start the API on `http://localhost:8080`.
+- `cd tracksByPopularity && dotnet test`: run all xUnit tests.
+- `cd tracksByPopularityFront && npm install`: install frontend dependencies.
+- `npm run dev`: start Vite on `http://localhost:5173`.
+- `npm run build`: type-check and create the production bundle.
+- `npm run lint && npm run type-check`: apply ESLint fixes and validate TypeScript.
+- `npm run test:unit -- --run`: run Vitest once; `npm run test:e2e` runs Playwright.
 
-### Backend (`tracksByPopularity/`)
+## Coding Style & Naming Conventions
 
-```bash
-# Build
-cd tracksByPopularity && dotnet build
+Use file-scoped C# namespaces, nullable reference types, dependency injection, and asynchronous methods ending in `Async`. Name C# types and members in `PascalCase`, private fields `_camelCase`, and keep one public class per file.
 
-# Run
-dotnet run                    # http://localhost:8080
-dotnet watch run              # Hot reload
+Vue components use `<script setup lang="ts">` and `PascalCase` filenames; composables start with `use`. Use `camelCase` for TypeScript values, `PascalCase` for types, and `SCREAMING_SNAKE_CASE` for constants. Prefer `const`, explicit parameter and return types, and `unknown` over `any`. Prettier uses no semicolons, single quotes, and a 100-character line width.
 
-# Test (xUnit)
-dotnet test
-dotnet test --filter "FullyQualifiedName~TestClassName"   # Run single test class
-dotnet test --filter "FullyQualifiedName~TestMethodName" # Run single test
+## Testing Guidelines
 
-# Format (using dotnet-format)
-dotnet format
-```
+Add focused tests for new behavior and bug fixes. Name frontend tests `*.spec.ts` and backend tests `*Tests.cs`; use descriptive `describe`/`it` or method names. Run the affected suite first, then the complete relevant test command. No coverage threshold is currently enforced.
 
-### Frontend (`tracksByPopularityFront/`)
+## Commit & Pull Request Guidelines
 
-```bash
-cd tracksByPopularityFront
+Recent history favors concise, imperative Conventional Commit subjects such as `feat(frontend): ...`, `fix(frontend): ...`, and `refactor(backend): ...`. Keep commits atomic and scoped. Pull requests should explain the change, list verification commands, link related issues, and include screenshots for visible UI changes. Call out migrations or configuration changes explicitly.
 
-# Install dependencies
-npm install
+## Security & Configuration
 
-# Development
-npm run dev                   # Vite dev server at http://localhost:5173
-
-# Build
-npm run build                 # Type-check + production build
-npm run build-only            # Vite build without type-check
-
-# Lint & Format
-npm run lint                  # ESLint with auto-fix
-npm run format                # Prettier (write mode)
-
-# Type Check
-npm run type-check            # vue-tsc type checking
-
-# Testing
-npm run test:unit             # Vitest unit tests
-npm run test:unit -- src/__tests__/App.spec.ts   # Run single test file
-npm run test:unit -- --run src/__tests__/App.spec.ts  # Run with --run flag
-npm run test:e2e              # Playwright e2e tests
-```
-
----
-
-## Architecture Conventions
-
-### Backend (Clean Architecture)
-
-```
-src/
-├── Domain/           # Entities, Value Objects, Domain Services (no external deps)
-│   ├── Entities/
-│   ├── ValueObjects/
-│   ├── Enums/
-│   ├── Exceptions/
-│   └── Services/
-├── Application/      # Interfaces, DTOs, Application Services
-│   ├── Interfaces/
-│   ├── DTOs/
-│   ├── Services/
-│   ├── Validators/
-│   └── Mapping/
-├── Infrastructure/   # External services, Redis, Spotify API
-│   ├── Services/
-│   ├── Configuration/
-│   ├── Data/
-│   ├── Background/
-│   ├── Logging/
-│   └── Helpers/
-└── Presentation/     # Controllers, Middleware, Filters
-    ├── Controllers/
-    ├── Middlewares/
-    └── Filters/
-```
-
-### Frontend (Vue 3 + TypeScript)
-
-```
-src/
-├── composables/      # Vue composables (useXxx naming)
-├── services/         # API clients (xxxApi naming)
-├── stores/           # Pinia stores
-├── router/
-├── i18n/
-├── types/
-├── utils/
-├── components/
-└── __tests__/        # Unit tests
-```
-
----
-
-## Backend Conventions (C#/.NET)
-
-### Naming Conventions
-- Classes/Interfaces: `PascalCase` (e.g., `TrackOrganizationService`)
-- Methods/Properties: `PascalCase` (e.g., `GetUserByIdAsync`)
-- Private fields: `_camelCase` (e.g., `_cacheService`)
-- Namespaces: Match folder structure (e.g., `tracksByPopularity.Application.Services`)
-- Files: Match class name (e.g., `TrackOrganizationService.cs`)
-
-### File Organization
-- One public class per file (exception: tightly coupled small classes)
-- Place interface and implementation in same folder under `Interfaces/` and `Services/`
-- Use file-scoped namespaces: `namespace tracksByPopularity.Application.Services;`
-
-### Imports
-```csharp
-using System.Collections.Generic;
-using System.Threading.Tasks;
-// Framework namespaces first, then third-party, then internal
-using SpotifyAPI.Web;
-using tracksByPopularity.Application.Interfaces;
-```
-
-### Nullable & Types
-- Enable nullable reference types: `<Nullable>enable</Nullable>`
-- Initialize strings with `string.Empty` or use `string?`
-- Use `IList<T>` for method parameters, `List<T>` for concrete types
-- Primary constructors for DI: `public class Service(IDependency dep) { }`
-
-### Error Handling
-- Use structured logging with Serilog: `logger.LogInformation("Message {Param}", value)`
-- Domain exceptions for business rule violations
-- Global exception middleware handles all unhandled exceptions
-- Return `ApiResponse.Fail()` for expected failures
-
-### API Response Pattern
-```csharp
-public class ApiResponse<T>
-{
-    public bool Success { get; set; }
-    public string? Message { get; set; }
-    public T? Data { get; set; }
-    public string? Error { get; set; }
-}
-
-return ApiResponse<T>.Ok(data);
-return ApiResponse.Fail("Error message");
-```
-
-### Async/Await
-- Async methods must end with `Async` suffix
-- Use `async Task<T>` for operations that return values
-- Avoid blocking calls (`.Result`, `.Wait()`)
-
----
-
-## Frontend Conventions (TypeScript/Vue 3)
-
-### Naming Conventions
-- Variables/functions: `camelCase` (e.g., `getUserData`, `isLoading`)
-- Components: `PascalCase` (e.g., `PlaylistSelector.vue`)
-- Types/Interfaces: `PascalCase` (e.g., `ApiResponse<T>`)
-- Files: `kebab-case` (e.g., `use-playlists.ts`, `playlist-actions.ts`)
-- Constants: `SCREAMING_SNAKE_CASE` (e.g., `ERROR_MESSAGES`)
-
-### Imports
-```typescript
-// Vue/core first, then external, then internal
-import { ref, computed } from 'vue'
-import { defineComponent } from 'vue'
-import axios from 'axios'
-import { usePlaylists } from '@/composables/usePlaylists'
-import { PLAYLIST_IDS } from '@/utils/constants'
-import type { ApiResponse } from '@/types/api'
-```
-
-### TypeScript
-- Use `interface` for object shapes, `type` for unions/intersections
-- Always annotate function parameters and return types
-- Use `unknown` instead of `any` for untyped data
-- Prefer `const` over `let`
-
-### Vue 3 Composition API
-- Use `<script setup lang="ts">` for all components
-- Composables prefixed with `use`: `usePlaylists()`, `useApiHealth()`
-- Props defined with `defineProps<Props>()` and validated
-- Emits defined with `defineEmits<Emits>()`
-
-### Error Handling
-- Wrap async operations in try/catch
-- Return `ApiResponse` objects with `{ success: boolean, data?, error? }`
-- Log errors with the logger utility: `logger.error('message', error)`
-- Display errors to users via NotificationBanner component
-
-### Formatting (Prettier)
-```json
-{
-  "semi": false,
-  "singleQuote": true,
-  "printWidth": 100
-}
-```
-
-### Testing (Vitest)
-- Test files in `src/__tests__/` with `.spec.ts` suffix
-- Use `describe`/`it` blocks with BDD-style naming
-- Mock dependencies using `vi.fn()` or `vi.mock()`
-- Use `@vue/test-utils` for component tests
-
----
-
-## General Guidelines
-
-1. **Never commit secrets** - Use `.env` files, never commit credentials
-2. **Run lint/type-check before committing** - `npm run lint && npm run type-check` (frontend)
-3. **Write tests for new features** - Follow existing test patterns
-4. **Use domain-driven design** in backend - Keep business logic in Domain layer
-5. **Prefer composition over inheritance** in frontend
-6. **Use dependency injection** in backend via primary constructors
-7. **Follow existing patterns** - Match surrounding code style
+Never commit Spotify credentials, tokens, or production connection strings. Keep secrets in environment variables or ignored local configuration. Review `appsettings*.json`, frontend environment values, and `docker-compose.yml` carefully before publishing changes.
